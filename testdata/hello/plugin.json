@@ -1,0 +1,12 @@
+{
+  "id": "hello",
+  "name": "Hello",
+  "version": "0.1.0",
+  "main": "index.js",
+  "permissions": {
+    "network": ["127.0.0.1"]
+  },
+  "navigation": [
+    {"title": "Hello", "page": "hello", "icon": "star"}
+  ]
+}
