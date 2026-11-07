@@ -61,3 +61,16 @@ func TestMusicAdapter(t *testing.T) {
 		t.Errorf("playlist row = %+v", rows[2])
 	}
 }
+
+func TestWebURL(t *testing.T) {
+	for _, s := range []string{"https://example.com/x", "http://example.com"} {
+		if !webURL(s) {
+			t.Errorf("%s rejected", s)
+		}
+	}
+	for _, s := range []string{"", "file:///etc/passwd", "javascript:alert(1)", "example.com", "ftp://example.com"} {
+		if webURL(s) {
+			t.Errorf("%s accepted", s)
+		}
+	}
+}

@@ -117,7 +117,12 @@ func download(s *music.Stream) (*os.File, string, error) {
 	if err != nil {
 		return nil, "", err
 	}
-	if _, err := io.Copy(f, resp.Body); err != nil {
+	const maxAudio = 512 << 20
+	n, err := io.Copy(f, io.LimitReader(resp.Body, maxAudio+1))
+	if err == nil && n > maxAudio {
+		err = fmt.Errorf("audio is larger than %d bytes", int64(maxAudio))
+	}
+	if err != nil {
 		f.Close()
 		os.Remove(f.Name())
 		return nil, "", err

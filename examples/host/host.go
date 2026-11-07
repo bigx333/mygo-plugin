@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
+	"net/url"
 	"os"
 	"path/filepath"
 	"strings"
@@ -80,8 +81,9 @@ func newHost(pluginsDir, dataDir string) *host {
 
 func (h *host) start() {
 	h.plugins = plugin.Discover(h.pluginsDir, plugin.Options{
-		AppVersion: "0.6.0",
-		DataDir:    h.dataDir,
+		AppVersion:   "0.6.0",
+		DataDir:      h.dataDir,
+		Capabilities: []string{"network"},
 		Host: plugin.Host{
 			Language: func() string { return "en" },
 			OpenURL:  func(u string) error { return mygo.Shell.OpenExternal(u) },
@@ -313,6 +315,10 @@ func (h *host) runAction(a plugin.Action) {
 	switch a.Kind {
 	case "url":
 		if a.URL != "" {
+			if !webURL(a.URL) {
+				h.notice = "not a web address: " + a.URL
+				break
+			}
 			if err := mygo.Shell.OpenExternal(a.URL); err != nil {
 				h.notice = err.Error()
 			}
@@ -323,6 +329,14 @@ func (h *host) runAction(a plugin.Action) {
 		h.notice = "This host doesn't know the action " + a.Title
 	}
 	h.win.Invalidate()
+}
+
+// webURL reports whether s is an http or https address, which are the only
+// ones an action may open: a plugin must not hand the system a file: or a
+// custom scheme.
+func webURL(s string) bool {
+	u, err := url.Parse(s)
+	return err == nil && (u.Scheme == "http" || u.Scheme == "https") && u.Host != ""
 }
 
 func (h *host) runCommand(id string, args map[string]any) {
