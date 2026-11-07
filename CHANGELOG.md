@@ -2,6 +2,13 @@
 
 mygo-plugin follows Semantic Versioning. Before 1.0, a minor version may change the API, and a patch version fixes bugs. The manifest and the host API freeze at 1.0.
 
+## 0.6.0
+
+### Added
+
+- `host.t` and `locales/<language>.json`, so a plugin's text follows the listener's language; 17 of the 23 public plugins call it.
+- A compatibility test that calls `home()` on a real public plugin, not just compiles it.
+
 ## 0.5.0
 
 ### Added

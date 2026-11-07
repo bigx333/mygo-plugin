@@ -89,6 +89,7 @@ MyGo 已经区分可信页面和不可信页面：需要 HTML 的插件 UI 可�
 | `host.storage.get/set/remove` | 每插件独立的 JSON KV，落盘到 `storage.json` |
 | `host.crypto.md5` / `host.crypto.aesEcbEncrypt` | 十六进制输出，PKCS#7 填充 |
 | `host.language()` | BCP 47 语言标签 |
+| `host.t(text)` | 按用户语言从 `locales/<language>.json` 取译文，没有就用原文 |
 | `host.setting(key)` | 用户给这个插件的设置值 |
 | `host.openURL(url)` | 只允许 http/https |
 | `host.signInPrompt({ qr, text })` | 登录时给宿主显示 |

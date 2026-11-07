@@ -96,6 +96,7 @@ type Plugin struct {
 	data     string
 	mod      *moejs.Module
 	exports  map[string]bool
+	locales  map[string]map[string]string
 	opts     Options
 
 	mu      sync.Mutex // guards vm
@@ -148,6 +149,7 @@ func Load(dir string, opts Options) (*Plugin, error) {
 	for _, name := range mod.Exports() {
 		p.exports[name] = true
 	}
+	p.locales = readLocales(dir)
 	readJSON(filepath.Join(p.data, "storage.json"), &p.storage)
 	return p, nil
 }
@@ -421,6 +423,47 @@ func (p *Plugin) drop(v *vm) {
 	}
 	p.mu.Unlock()
 	go v.close()
+}
+
+// readLocales reads the plugin's translations: locales/<language>.json, each
+// a map from the English text to what it is in that language.
+func readLocales(dir string) map[string]map[string]string {
+	out := map[string]map[string]string{}
+	entries, err := os.ReadDir(filepath.Join(dir, "locales"))
+	if err != nil {
+		return out
+	}
+	for _, e := range entries {
+		if e.IsDir() || !strings.HasSuffix(e.Name(), ".json") {
+			continue
+		}
+		var texts map[string]string
+		b, err := os.ReadFile(filepath.Join(dir, "locales", e.Name()))
+		if err != nil || json.Unmarshal(b, &texts) != nil {
+			continue
+		}
+		out[strings.TrimSuffix(e.Name(), ".json")] = texts
+	}
+	return out
+}
+
+// t is text in the listener's language, if the plugin translated it. A
+// language without a translation falls back to its base language, as zh-CN
+// does to zh, and then to the English text.
+func (p *Plugin) t(text string) string {
+	lang := "en"
+	if p.opts.Host.Language != nil {
+		lang = p.opts.Host.Language()
+	}
+	if tr := p.locales[lang][text]; tr != "" {
+		return tr
+	}
+	if i := strings.IndexByte(lang, '-'); i > 0 {
+		if tr := p.locales[lang[:i]][text]; tr != "" {
+			return tr
+		}
+	}
+	return text
 }
 
 // readJSON reads the file into v, leaving v as it is when the file is absent

@@ -56,6 +56,9 @@ func (p *Plugin) installHost(v *vm) error {
 			}
 			return moejs.String(lang), nil
 		}),
+		"t": moejs.NativeFunc(func(_ *moejs.Realm, _ moejs.Value, args []moejs.Value) (moejs.Value, error) {
+			return moejs.String(p.t(moejs.Arg(args, 0).String())), nil
+		}),
 		"setting": moejs.NativeFunc(func(_ *moejs.Realm, _ moejs.Value, args []moejs.Value) (moejs.Value, error) {
 			if p.opts.Host.Setting == nil {
 				return moejs.String(""), nil

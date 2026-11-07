@@ -89,6 +89,7 @@ Icons are names in the host's icon set (`calendar`, `star`, `playlist`, ...), no
 | `host.storage.get/set/remove` | Per-plugin JSON KV, written to `storage.json` |
 | `host.crypto.md5` / `host.crypto.aesEcbEncrypt` | Hex output, PKCS#7 padding |
 | `host.language()` | A BCP 47 language tag |
+| `host.t(text)` | The text in the listener's language, from `locales/<language>.json`, else the text |
 | `host.setting(key)` | The value the listener gave this plugin's setting |
 | `host.openURL(url)` | http/https only |
 | `host.signInPrompt({ qr, text })` | What to show while signing in |

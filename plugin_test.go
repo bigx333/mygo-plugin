@@ -112,6 +112,26 @@ func TestHostCallbacks(t *testing.T) {
 	}
 }
 
+func TestTranslation(t *testing.T) {
+	zh := loadHello(t, Options{Host: Host{Language: func() string { return "zh-CN" }}})
+	var out string
+	if err := zh.Call("translated", nil, &out); err != nil {
+		t.Fatal(err)
+	}
+	if out != "你好" {
+		t.Errorf("zh-CN = %q", out)
+	}
+	zh.Close()
+
+	en := loadHello(t, Options{Host: Host{Language: func() string { return "en" }}})
+	if err := en.Call("translated", nil, &out); err != nil {
+		t.Fatal(err)
+	}
+	if out != "Hello" {
+		t.Errorf("en = %q", out)
+	}
+}
+
 func TestDataDirRequired(t *testing.T) {
 	if _, err := Load("testdata/hello", Options{}); err == nil {
 		t.Fatal("loaded without a data dir")
@@ -204,7 +224,7 @@ func TestInspect(t *testing.T) {
 	if m.ID != "hello" {
 		t.Errorf("id = %s", m.ID)
 	}
-	want := "add,claim,fail,fetchText,hashes,hello,later,prompt,spin,store,stored"
+	want := "add,claim,fail,fetchText,hashes,hello,later,prompt,spin,store,stored,translated"
 	if strings.Join(exports, ",") != want {
 		t.Errorf("exports = %v", exports)
 	}
@@ -401,4 +421,29 @@ func TestAllowedHosts(t *testing.T) {
 	if out != "ok" {
 		t.Errorf("fetch = %q", out)
 	}
+}
+
+// TestRealHome calls a real plugin's home with the host this module builds,
+// for checking compatibility beyond compiling it.
+func TestRealHome(t *testing.T) {
+	dir := os.Getenv("MYGO_PLUGIN_REAL")
+	if dir == "" {
+		t.Skip("set MYGO_PLUGIN_REAL to a plugin folder")
+	}
+	p, err := Load(dir, Options{AppVersion: "0.5.0", DataDir: t.TempDir(), Host: Host{
+		Language: func() string { return "zh-CN" },
+	}})
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer p.Close()
+	var out struct {
+		Sections []struct {
+			Title string `json:"title"`
+		} `json:"sections"`
+	}
+	if err := p.CallWithin(45*time.Second, "home", nil, &out); err != nil {
+		t.Fatal(err)
+	}
+	t.Logf("%d sections", len(out.Sections))
 }

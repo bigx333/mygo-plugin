@@ -33,6 +33,10 @@ export async function fetchText({ url }) {
   return await response.text();
 }
 
+export function translated() {
+  return host.t("Hello");
+}
+
 export function prompt() {
   host.signInPrompt({ qr: "QR", text: "scan" });
   return host.language();
