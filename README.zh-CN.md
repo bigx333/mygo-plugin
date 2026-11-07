@@ -2,6 +2,8 @@
 
 [English](README.md) · 简体中文
 
+[![Listed on Awesome MyGo](https://awesomemygo.dev/badge.svg)](https://awesomemygo.dev/plugins)
+
 MyGo 应用的原生插件宿主：纯 Go、进程内、无 WebView。插件是 `plugin.json` 加一个 JavaScript / TypeScript 模块，由 [moejs](https://github.com/MoeForge/moejs) 在每个插件自己的运行时里跑；界面仍由宿主用 MyGo 的原生 UI 绘制。
 
 这不是又一个 WebView 插件容器。插件拿不到 DOM，也画不了界面；它提供数据，宿主决定怎么画。这样插件再重，应用也还是 MyGo 的应用。

@@ -2,6 +2,8 @@
 
 [简体中文](README.zh-CN.md)
 
+[![Listed on Awesome MyGo](https://awesomemygo.dev/badge.svg)](https://awesomemygo.dev/plugins)
+
 A native plugin host for MyGo apps: pure Go, in-process, no WebView. A plugin is a `plugin.json` plus a JavaScript or TypeScript module, run by [moejs](https://github.com/MoeForge/moejs) in a runtime of its own; the interface is still drawn by the host with MyGo's native UI.
 
 This is not another WebView plugin container. A plugin gets no DOM and cannot draw the interface: it provides data, and the host decides how to show it. However heavy a plugin is, the app stays a MyGo app.
