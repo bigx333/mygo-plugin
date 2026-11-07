@@ -24,10 +24,11 @@ MyGo Music 有一套完整的第三方插件运行时，但它在 `internal/plug
 - `fetch` 按 `permissions.network` 的 host allowlist 放行；没有权限就完全断网
 - 调用超时、256 MiB 内存上限、卡死自动重启
 - 从文件夹、ZIP 或 GitHub 安装；支持 id、版本和校验和；网络与进程权限需要显式同意
-- `mygo-music-plugin` topic 的注册表，每周重建；`index` 会编译模块、记录导出，不执行
+- 公开的 `mygo-music-plugin` topic 注册表，每周重建；`index` 会编译模块、记录导出，不执行
+- 从注册表生成的静态商店页
 - 宿主全局的 TypeScript 声明，以及给插件作者的 `plugintest` 包
 - 实验性的宿主渲染页面 schema
-- `mygo-plugin` CLI：`check`、`pack`、`new`、`list`、`index`、`install`、`dev`
+- `mygo-plugin` CLI：`check`、`pack`、`new`、`list`、`index`、`install`、`site`、`dev`
 - manifest JSON Schema：`spec/plugin.schema.json`
 
 ## 快速开始
@@ -114,7 +115,7 @@ MyGo 已经区分可信页面和不可信页面：需要 HTML 的插件 UI 可�
 
 ## 注册表
 
-`registry.json` 收录 `mygo-music-plugin` topic 下的插件，按插件 id 去重：目前 30 个仓库得到 24 个插件。每条带权限、GitHub 给出时的 release zip 校验和，以及健康记录：`index` 会编译模块但不执行，留下导出或编译错误。
+`registry.json` 收录 `mygo-music-plugin` topic 下的插件，按插件 id 去重：目前 29 个仓库得到 23 个插件。每条带权限、GitHub 给出时的 release zip 校验和，以及健康记录：`index` 会编译模块但不执行，留下导出或编译错误。
 
 ```sh
 GITHUB_TOKEN=... mygo-plugin index -o registry.json  # token 也用来读取 release 校验和
@@ -122,6 +123,10 @@ mygo-plugin install netease-haruhikage /path/to/plugins --allow-network
 ```
 
 两个仓库用同一个 id 时，版本新的优先，版本相同则仓库名排序靠前的优先。安装插件是一次信任决定：命令会打印网络和进程权限，没有 `--allow-network` 和 `--allow-process` 不会继续。注册表由 GitHub Actions 每周刷新。
+
+每条还会带上 GitHub 的信任信号：stars、最近提交、license、是否归档。只抓公开仓库。
+
+`mygo-plugin site` 把同一份注册表写成[静态页面](site/index.html)，带权限、健康、信任信号和安装命令，不需要服务器，也不需要 JavaScript。
 
 ## 安装与分发
 

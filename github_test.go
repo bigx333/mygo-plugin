@@ -60,6 +60,9 @@ func TestGitHubRepos(t *testing.T) {
 			http.NotFound(w, r)
 			return
 		}
+		if q := r.URL.Query().Get("q"); q != "topic:mygo-music-plugin is:public" {
+			t.Errorf("q = %q", q)
+		}
 		json.NewEncoder(w).Encode(map[string]any{
 			"items": []map[string]string{{"full_name": "a/one"}, {"full_name": "b/two"}, {"full_name": "a/one"}},
 		})

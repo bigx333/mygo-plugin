@@ -24,10 +24,11 @@ MyGo Music has a complete third-party plugin runtime, but it lives in `internal/
 - `fetch` limited to `permissions.network` hosts; no permission means no network
 - Call timeouts, a 256 MiB memory limit, and automatic restart when stuck
 - Install from a folder, a ZIP or GitHub, by id, version and checksum, with explicit consent for network and process permissions
-- A registry of the `mygo-music-plugin` topic, rebuilt weekly, with a health check that compiles each module and records its exports
+- A registry of the public `mygo-music-plugin` topic, rebuilt weekly, with a health check that compiles each module and records its exports
+- A static store page generated from the registry
 - TypeScript declarations for the host global and a `plugintest` package for plugin authors
 - An experimental host-rendered page schema for plugin pages
-- `mygo-plugin` CLI: `check`, `pack`, `new`, `list`, `index`, `install`, `dev`
+- `mygo-plugin` CLI: `check`, `pack`, `new`, `list`, `index`, `install`, `site`, `dev`
 - Manifest JSON Schema: `spec/plugin.schema.json`
 
 ## Quick start
@@ -114,7 +115,7 @@ Icons are names in the host's icon set (`calendar`, `star`, `playlist`, ...), no
 
 ## Registry
 
-`registry.json` lists the plugins in the `mygo-music-plugin` topic, one entry per plugin id: 24 plugins from 30 repositories today. Each entry carries the manifest's permissions, a checksum of the release zip when GitHub reports one, and a health record: `index` compiles the module without running it and keeps the exports, or the error that stopped it.
+`registry.json` lists the plugins in the `mygo-music-plugin` topic, one entry per plugin id: 23 plugins from 29 repositories today. Each entry carries the manifest's permissions, a checksum of the release zip when GitHub reports one, and a health record: `index` compiles the module without running it and keeps the exports, or the error that stopped it.
 
 ```sh
 GITHUB_TOKEN=... mygo-plugin index -o registry.json  # the token also reads release checksums
@@ -122,6 +123,10 @@ mygo-plugin install netease-haruhikage /path/to/plugins --allow-network
 ```
 
 When two repositories share an id, the newer version wins, then the repository that sorts first. Installing a plugin is a trust decision: the command prints its network and process permissions and refuses to continue without `--allow-network` and `--allow-process`. The registry refreshes weekly from GitHub Actions.
+
+Each entry also carries trust signals when GitHub answers: stars, the last push, the license, and whether the repository is archived. Only public repositories are crawled.
+
+`mygo-plugin site` writes the same registry as a [static page](site/index.html), with the permissions, health, trust signals and install command of each plugin. It needs no server and no JavaScript.
 
 ## Installing and distributing
 

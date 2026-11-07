@@ -23,13 +23,14 @@ jobs:
       - run: go run ./cmd/mygo-plugin index -o registry.json
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - run: go run ./cmd/mygo-plugin site -o site/index.html
       - run: |
-          if git diff --quiet -- registry.json; then
+          if git diff --quiet -- registry.json site/index.html; then
             echo "No change."
             exit 0
           fi
           git config user.name yxxbc
           git config user.email "203426472+yxxbc@users.noreply.github.com"
-          git add registry.json
+          git add registry.json site/index.html
           git commit -m "Update the plugin registry"
           git push

@@ -2,7 +2,7 @@
 
 mygo-plugin follows Semantic Versioning. Before 1.0, a minor version may change the API, and a patch version fixes bugs. The manifest and the host API freeze at 1.0.
 
-## Unreleased
+## 0.5.0
 
 ### Added
 
@@ -14,6 +14,8 @@ mygo-plugin follows Semantic Versioning. Before 1.0, a minor version may change 
 - An experimental host-rendered page schema: `Page`, `Section`, `Item`, `Plugin.Browse`, and `spec/page.schema.json`.
 - `Options.Allowed`, so the app decides which network hosts a plugin may reach.
 - `examples/host`: a reference native MyGo host with consent, search, browse and playback.
+- Registry trust signals: stars, last push, license, archived; only public repositories are crawled.
+- `mygo-plugin site`: a static store page with permissions, health, trust signals and install commands.
 
 ## 0.2.0
 

@@ -76,6 +76,37 @@ func (g *GitHub) requestAccept(ctx context.Context, url, accept string) (*http.R
 	return g.client().Do(req)
 }
 
+// RepoInfo is what GitHub says of a repository, for the registry's trust
+// signals.
+type RepoInfo struct {
+	Stars    int        `json:"stargazers_count"`
+	PushedAt *time.Time `json:"pushed_at"`
+	Archived bool       `json:"archived"`
+	License  *struct {
+		SPDXID string `json:"spdx_id"`
+	} `json:"license"`
+}
+
+// Repo reads a repository's metadata.
+func (g *GitHub) Repo(ctx context.Context, repo string) (*RepoInfo, error) {
+	if !ValidRepo(repo) {
+		return nil, fmt.Errorf("not a repository, owner/name: %q", repo)
+	}
+	resp, err := g.request(ctx, g.api()+"/repos/"+repo)
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close()
+	if resp.StatusCode != http.StatusOK {
+		return nil, fmt.Errorf("%s: %s", repo, resp.Status)
+	}
+	var info RepoInfo
+	if err := json.NewDecoder(io.LimitReader(resp.Body, 1<<20)).Decode(&info); err != nil {
+		return nil, err
+	}
+	return &info, nil
+}
+
 // Manifest reads plugin.json from the repository's default branch.
 func (g *GitHub) Manifest(ctx context.Context, repo string) (*Manifest, error) {
 	if !ValidRepo(repo) {
@@ -159,8 +190,9 @@ func (g *GitHub) Repos(ctx context.Context, topic string) ([]string, error) {
 	var out []string
 	seen := map[string]bool{}
 	for page := 1; page <= 10; page++ {
-		url := fmt.Sprintf("%s/search/repositories?q=topic:%s&per_page=100&page=%d&sort=updated",
-			g.api(), topic, page)
+		query := url.QueryEscape("topic:" + topic + " is:public")
+		url := fmt.Sprintf("%s/search/repositories?q=%s&per_page=100&page=%d&sort=updated",
+			g.api(), query, page)
 		resp, err := g.request(ctx, url)
 		if err != nil {
 			return nil, err

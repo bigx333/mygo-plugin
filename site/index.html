@@ -1,0 +1,364 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>MyGo plugins</title>
+<style>
+  :root { color-scheme: light dark; --bg: #f6f6f4; --panel: #fff; --text: #17171a; --muted: #6b6b73; --line: #e3e3df; --accent: #2f6fed; --ok: #1f7a4d; --bad: #a33a2a; }
+  @media (prefers-color-scheme: dark) { :root { --bg: #131316; --panel: #1b1b1f; --text: #ececf0; --muted: #9a9aa3; --line: #2a2a30; --accent: #7aa2ff; --ok: #5fce9b; --bad: #ff8b78; } }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--text); font: 14px/1.5 -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif; }
+  header, main, footer { max-width: 1100px; margin: 0 auto; padding: 0 20px; }
+  header { padding-top: 40px; padding-bottom: 20px; }
+  h1 { font-size: 26px; margin: 0 0 6px; letter-spacing: -0.02em; }
+  header p, footer { color: var(--muted); font-size: 12px; }
+  main { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 320px), 1fr)); gap: 14px; padding-bottom: 30px; }
+  .card { background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 16px; display: flex; flex-direction: column; gap: 8px; }
+  .top { display: flex; align-items: baseline; gap: 8px; flex-wrap: wrap; }
+  h2 { font-size: 15px; margin: 0; }
+  .ver { color: var(--muted); font-size: 12px; font-variant-numeric: tabular-nums; }
+  .desc { margin: 0; color: var(--muted); font-size: 12px; min-height: 36px; }
+  .chips { display: flex; gap: 6px; flex-wrap: wrap; }
+  .chip { border: 1px solid var(--line); border-radius: 999px; padding: 2px 8px; font-size: 11px; color: var(--muted); }
+  .chip.ok { color: var(--ok); border-color: color-mix(in srgb, var(--ok) 40%, transparent); }
+  .chip.bad { color: var(--bad); border-color: color-mix(in srgb, var(--bad) 40%, transparent); }
+  code { font: 11px/1.6 ui-monospace, SFMono-Regular, Menlo, monospace; background: color-mix(in srgb, var(--text) 6%, transparent); padding: 6px 8px; border-radius: 6px; overflow-wrap: anywhere; }
+  .foot { display: flex; justify-content: space-between; gap: 10px; color: var(--muted); font-size: 11px; margin-top: auto; }
+  .foot a { color: var(--accent); text-decoration: none; }
+  footer { padding-bottom: 40px; }
+</style>
+</head>
+<body>
+<header>
+  <h1>MyGo plugins</h1>
+  <p>23 plugins · generated 2026-11-07 06:18 UTC · from plugin.json manifests, checked by compiling the module</p>
+</header>
+<main>
+
+  <article class="card">
+    <div class="top"><h2>Ampache</h2><span class="ver">v0.1.0</span></div>
+    <p class="desc"></p>
+    <div class="chips">
+      <span class="chip">any host</span>
+      <span class="chip">no programs</span>
+      <span class="chip ok">compiles · 12 exports</span>
+      
+      <span class="chip">★ 1</span>
+    </div>
+    <code>mygo-plugin install ampache ./plugins --allow-network</code>
+    <div class="foot"><a href="https://github.com/benhaotang/mygo-music-Ampache">benhaotang/mygo-music-Ampache</a><span>updated 2026-11-07</span></div>
+  </article>
+
+  <article class="card">
+    <div class="top"><h2>Apple Music</h2><span class="ver">v0.1.7</span></div>
+    <p class="desc"></p>
+    <div class="chips">
+      <span class="chip">amp-api.music.apple.com, amp-api-edge.music.apple.com &#43;9</span>
+      <span class="chip">may start programs</span>
+      <span class="chip ok">compiles · 61 exports</span>
+      <span class="chip">MIT</span>
+      
+    </div>
+    <code>mygo-plugin install apple-music ./plugins --allow-network --allow-process</code>
+    <div class="foot"><a href="https://github.com/InkCitrus/mygo-music-apple-music">InkCitrus/mygo-music-apple-music</a><span>updated 2026-11-07</span></div>
+  </article>
+
+  <article class="card">
+    <div class="top"><h2>Bilibili</h2><span class="ver">v0.2.0</span></div>
+    <p class="desc"></p>
+    <div class="chips">
+      <span class="chip">api.bilibili.com, passport.bilibili.com &#43;4</span>
+      <span class="chip">may start programs</span>
+      <span class="chip ok">compiles · 28 exports</span>
+      <span class="chip">MIT</span>
+      <span class="chip">★ 6</span>
+    </div>
+    <code>mygo-plugin install bilibili ./plugins --allow-network --allow-process</code>
+    <div class="foot"><a href="https://github.com/GentleM4dman/mygo-music-bilibili">GentleM4dman/mygo-music-bilibili</a><span>updated 2026-11-06</span></div>
+  </article>
+
+  <article class="card">
+    <div class="top"><h2>Bodian Music</h2><span class="ver">v0.1.0</span></div>
+    <p class="desc"></p>
+    <div class="chips">
+      <span class="chip">bd-api.kuwo.cn, mlyric.kuwo.cn</span>
+      <span class="chip">no programs</span>
+      <span class="chip ok">compiles · 28 exports</span>
+      <span class="chip">MIT</span>
+      
+    </div>
+    <code>mygo-plugin install bodian ./plugins --allow-network</code>
+    <div class="foot"><a href="https://github.com/amqsy/mygo-music-bodian">amqsy/mygo-music-bodian</a><span>updated 2026-11-06</span></div>
+  </article>
+
+  <article class="card">
+    <div class="top"><h2>Music Download</h2><span class="ver">v0.1.0</span></div>
+    <p class="desc"></p>
+    <div class="chips">
+      <span class="chip">flac.music.hi.cn, *.music.126.net &#43;13</span>
+      <span class="chip">no programs</span>
+      <span class="chip ok">compiles · 13 exports</span>
+      <span class="chip">MIT</span>
+      <span class="chip">★ 2</span>
+    </div>
+    <code>mygo-plugin install download-music ./plugins --allow-network</code>
+    <div class="foot"><a href="https://github.com/yunforge/mygo-music-download">yunforge/mygo-music-download</a><span>updated 2026-11-06</span></div>
+  </article>
+
+  <article class="card">
+    <div class="top"><h2>fnOS Music</h2><span class="ver">v1.1.2</span></div>
+    <p class="desc"></p>
+    <div class="chips">
+      <span class="chip">any host</span>
+      <span class="chip">no programs</span>
+      <span class="chip ok">compiles · 23 exports</span>
+      <span class="chip">AGPL-3.0</span>
+      <span class="chip">★ 2</span>
+    </div>
+    <code>mygo-plugin install fnos-music ./plugins --allow-network</code>
+    <div class="foot"><a href="https://github.com/yusgsysh/mygo-music-fnos-plugin">yusgsysh/mygo-music-fnos-plugin</a><span>updated 2026-11-07</span></div>
+  </article>
+
+  <article class="card">
+    <div class="top"><h2>酷狗</h2><span class="ver">v1.0.0</span></div>
+    <p class="desc"></p>
+    <div class="chips">
+      <span class="chip">gateway.kugou.com, lyrics.kugou.com &#43;4</span>
+      <span class="chip">no programs</span>
+      <span class="chip ok">compiles · 13 exports</span>
+      <span class="chip">MIT</span>
+      
+    </div>
+    <code>mygo-plugin install kugou ./plugins --allow-network</code>
+    <div class="foot"><a href="https://github.com/fcmfcm1999/mygo-music-kugou">fcmfcm1999/mygo-music-kugou</a><span>updated 2026-11-06</span></div>
+  </article>
+
+  <article class="card">
+    <div class="top"><h2>Kugou Concept</h2><span class="ver">v1.3.0</span></div>
+    <p class="desc"></p>
+    <div class="chips">
+      <span class="chip">gateway.kugou.com, openapi.kugou.com &#43;6</span>
+      <span class="chip">no programs</span>
+      <span class="chip ok">compiles · 27 exports</span>
+      <span class="chip">NOASSERTION</span>
+      <span class="chip">★ 4</span>
+    </div>
+    <code>mygo-plugin install kugou-lite ./plugins --allow-network</code>
+    <div class="foot"><a href="https://github.com/bitbyte404/mygo-music-kugou-lite">bitbyte404/mygo-music-kugou-lite</a><span>updated 2026-11-06</span></div>
+  </article>
+
+  <article class="card">
+    <div class="top"><h2>Li Zhi</h2><span class="ver">v1.1.0</span></div>
+    <p class="desc"></p>
+    <div class="chips">
+      <span class="chip">api.github.com, testingcf.jsdelivr.net &#43;3</span>
+      <span class="chip">no programs</span>
+      <span class="chip ok">compiles · 15 exports</span>
+      
+      <span class="chip">★ 26</span>
+    </div>
+    <code>mygo-plugin install lizhi ./plugins --allow-network</code>
+    <div class="foot"><a href="https://github.com/djyde/mygo-lizhi">djyde/mygo-lizhi</a><span>updated 2026-11-07</span></div>
+  </article>
+
+  <article class="card">
+    <div class="top"><h2>QueYue</h2><span class="ver">v0.1.0</span></div>
+    <p class="desc"></p>
+    <div class="chips">
+      <span class="chip">api.indie.cn, www.indie.cn &#43;2</span>
+      <span class="chip">no programs</span>
+      <span class="chip ok">compiles · 16 exports</span>
+      
+      <span class="chip">★ 1</span>
+    </div>
+    <code>mygo-plugin install mygo-queyue ./plugins --allow-network</code>
+    <div class="foot"><a href="https://github.com/popeyelau/mygo-queyue">popeyelau/mygo-queyue</a><span>updated 2026-11-07</span></div>
+  </article>
+
+  <article class="card">
+    <div class="top"><h2>MyGotify</h2><span class="ver">v0.1.0</span></div>
+    <p class="desc"></p>
+    <div class="chips">
+      <span class="chip">open.spotify.com, api-partner.spotify.com &#43;6</span>
+      <span class="chip">may start programs</span>
+      <span class="chip ok">compiles · 23 exports</span>
+      <span class="chip">AGPL-3.0</span>
+      <span class="chip">★ 1</span>
+    </div>
+    <code>mygo-plugin install mygotify ./plugins --allow-network --allow-process</code>
+    <div class="foot"><a href="https://github.com/r0k1s-i/mygotify">r0k1s-i/mygotify</a><span>updated 2026-11-07</span></div>
+  </article>
+
+  <article class="card">
+    <div class="top"><h2>Navidrome</h2><span class="ver">v1.0.1</span></div>
+    <p class="desc"></p>
+    <div class="chips">
+      <span class="chip">any host</span>
+      <span class="chip">may start programs</span>
+      <span class="chip ok">compiles · 29 exports</span>
+      
+      
+    </div>
+    <code>mygo-plugin install navidrome ./plugins --allow-network --allow-process</code>
+    <div class="foot"><a href="https://github.com/bxb100/mygo-music-navidrome-plugin">bxb100/mygo-music-navidrome-plugin</a><span>updated 2026-11-07</span></div>
+  </article>
+
+  <article class="card">
+    <div class="top"><h2>网易云音乐</h2><span class="ver">v1.0.14</span></div>
+    <p class="desc"></p>
+    <div class="chips">
+      <span class="chip">music.163.com, interface.music.163.com</span>
+      <span class="chip">no programs</span>
+      <span class="chip ok">compiles · 36 exports</span>
+      <span class="chip">MIT</span>
+      
+    </div>
+    <code>mygo-plugin install netease ./plugins --allow-network</code>
+    <div class="foot"><a href="https://github.com/AsperaUlt/mygo-netease">AsperaUlt/mygo-netease</a><span>updated 2026-11-07</span></div>
+  </article>
+
+  <article class="card">
+    <div class="top"><h2>NetEase Cloud Music</h2><span class="ver">v0.1.8</span></div>
+    <p class="desc"></p>
+    <div class="chips">
+      <span class="chip">music.163.com, interfacepc.music.163.com</span>
+      <span class="chip">no programs</span>
+      <span class="chip ok">compiles · 38 exports</span>
+      <span class="chip">AGPL-3.0</span>
+      <span class="chip">★ 13</span>
+    </div>
+    <code>mygo-plugin install netease-cloud-music ./plugins --allow-network</code>
+    <div class="foot"><a href="https://github.com/AkinoKaede/mygo-music-netease-cloud-music">AkinoKaede/mygo-music-netease-cloud-music</a><span>updated 2026-11-07</span></div>
+  </article>
+
+  <article class="card">
+    <div class="top"><h2>NetEase Cloud Music Plus</h2><span class="ver">v0.2.1</span></div>
+    <p class="desc"></p>
+    <div class="chips">
+      <span class="chip">music.163.com, interfacepc.music.163.com</span>
+      <span class="chip">no programs</span>
+      <span class="chip ok">compiles · 38 exports</span>
+      <span class="chip">AGPL-3.0</span>
+      <span class="chip">★ 1</span>
+    </div>
+    <code>mygo-plugin install netease-cloud-music-plus ./plugins --allow-network</code>
+    <div class="foot"><a href="https://github.com/Arteiimis/mygo-music-netease">Arteiimis/mygo-music-netease</a><span>updated 2026-11-06</span></div>
+  </article>
+
+  <article class="card">
+    <div class="top"><h2>网易云音乐</h2><span class="ver">v0.4.0</span></div>
+    <p class="desc"></p>
+    <div class="chips">
+      <span class="chip">music.163.com, interfacepc.music.163.com &#43;1</span>
+      <span class="chip">no programs</span>
+      <span class="chip ok">compiles · 37 exports</span>
+      
+      <span class="chip">★ 6</span>
+    </div>
+    <code>mygo-plugin install netease-music ./plugins --allow-network</code>
+    <div class="foot"><a href="https://github.com/SixWa12138/mygo-music-netease-music">SixWa12138/mygo-music-netease-music</a><span>updated 2026-11-06</span></div>
+  </article>
+
+  <article class="card">
+    <div class="top"><h2>汽水音乐</h2><span class="ver">v0.4.5</span></div>
+    <p class="desc"></p>
+    <div class="chips">
+      <span class="chip">api.qishui.com, api5-lq.qishui.com &#43;1</span>
+      <span class="chip">may start programs</span>
+      <span class="chip ok">compiles · 27 exports</span>
+      
+      <span class="chip">★ 4</span>
+    </div>
+    <code>mygo-plugin install qishui ./plugins --allow-network --allow-process</code>
+    <div class="foot"><a href="https://github.com/DaviRain-Su/mygo-music-qishui">DaviRain-Su/mygo-music-qishui</a><span>updated 2026-11-07</span></div>
+  </article>
+
+  <article class="card">
+    <div class="top"><h2>汽水音乐</h2><span class="ver">v1.0.6</span></div>
+    <p class="desc"></p>
+    <div class="chips">
+      <span class="chip">no network</span>
+      <span class="chip">may start programs</span>
+      <span class="chip ok">compiles · 12 exports</span>
+      <span class="chip">AGPL-3.0</span>
+      <span class="chip">★ 3</span>
+    </div>
+    <code>mygo-plugin install qishui-app-login ./plugins --allow-process</code>
+    <div class="foot"><a href="https://github.com/lane128/mygo-music-qishui">lane128/mygo-music-qishui</a><span>updated 2026-11-07</span></div>
+  </article>
+
+  <article class="card">
+    <div class="top"><h2>QQ Music</h2><span class="ver">v0.3.0</span></div>
+    <p class="desc"></p>
+    <div class="chips">
+      <span class="chip">u.y.qq.com, c.y.qq.com &#43;8</span>
+      <span class="chip">no programs</span>
+      <span class="chip ok">compiles · 34 exports</span>
+      <span class="chip">AGPL-3.0</span>
+      
+    </div>
+    <code>mygo-plugin install qqmusic ./plugins --allow-network</code>
+    <div class="foot"><a href="https://github.com/Amamiya23/mygo-music-qq-plugin">Amamiya23/mygo-music-qq-plugin</a><span>updated 2026-11-07</span></div>
+  </article>
+
+  <article class="card">
+    <div class="top"><h2>Spotify</h2><span class="ver">v0.1.0</span></div>
+    <p class="desc"></p>
+    <div class="chips">
+      <span class="chip">api.spotify.com, accounts.spotify.com &#43;1</span>
+      <span class="chip">may start programs</span>
+      <span class="chip ok">compiles · 35 exports</span>
+      
+      <span class="chip">★ 5</span>
+    </div>
+    <code>mygo-plugin install spotify ./plugins --allow-network --allow-process</code>
+    <div class="foot"><a href="https://github.com/xingkaixin/mygo-music-spotify">xingkaixin/mygo-music-spotify</a><span>updated 2026-11-06</span></div>
+  </article>
+
+  <article class="card">
+    <div class="top"><h2>Subsonic</h2><span class="ver">v0.1.2</span></div>
+    <p class="desc"></p>
+    <div class="chips">
+      <span class="chip">any host</span>
+      <span class="chip">no programs</span>
+      <span class="chip ok">compiles · 26 exports</span>
+      <span class="chip">AGPL-3.0</span>
+      <span class="chip">★ 1</span>
+    </div>
+    <code>mygo-plugin install subsonic ./plugins --allow-network</code>
+    <div class="foot"><a href="https://github.com/TexasOct/mygo-subsonic">TexasOct/mygo-subsonic</a><span>updated 2026-11-06</span></div>
+  </article>
+
+  <article class="card">
+    <div class="top"><h2>YouTube Music</h2><span class="ver">v0.1.1</span></div>
+    <p class="desc"></p>
+    <div class="chips">
+      <span class="chip">music.youtube.com, s.youtube.com &#43;1</span>
+      <span class="chip">may start programs</span>
+      <span class="chip ok">compiles · 20 exports</span>
+      
+      <span class="chip">★ 25</span>
+    </div>
+    <code>mygo-plugin install youtube-music ./plugins --allow-network --allow-process</code>
+    <div class="foot"><a href="https://github.com/egoist/mygo-music-youtube-music">egoist/mygo-music-youtube-music</a><span>updated 2026-11-06</span></div>
+  </article>
+
+  <article class="card">
+    <div class="top"><h2>YunLu Music</h2><span class="ver">v1.1.0</span></div>
+    <p class="desc"></p>
+    <div class="chips">
+      <span class="chip">any host</span>
+      <span class="chip">no programs</span>
+      <span class="chip ok">compiles · 30 exports</span>
+      
+      <span class="chip">★ 1</span>
+    </div>
+    <code>mygo-plugin install yun-music ./plugins --allow-network</code>
+    <div class="foot"><a href="https://github.com/biaobiaobiao108/mygo-yun-music">biaobiaobiao108/mygo-yun-music</a><span>updated 2026-11-06</span></div>
+  </article>
+
+</main>
+<footer>Generated by <code>mygo-plugin site</code> from registry.json. Installing runs third-party code; read the permissions first.</footer>
+</body>
+</html>

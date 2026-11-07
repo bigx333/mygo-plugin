@@ -6,7 +6,7 @@ the rows itself, and plays a track's stream in Go.
 
 ```sh
 # from the repository root
-go run ./cmd/mygo-plugin install netease-haruhikage ./plugins --allow-network --yes
+go run ./cmd/mygo-plugin install netease ./plugins --allow-network --yes
 cd examples/host
 go run . -plugins ../../plugins
 ```

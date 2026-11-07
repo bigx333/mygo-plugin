@@ -32,6 +32,12 @@ type RegistryEntry struct {
 	// Health is what the last build saw of the module: whether it compiles,
 	// and what it exports when it does.
 	Health *Health `json:"health,omitempty"`
+	// Trust signals, when GitHub answered: stars, the last push, the
+	// license, and whether the repository is archived.
+	Stars    int        `json:"stars,omitempty"`
+	PushedAt *time.Time `json:"pushedAt,omitempty"`
+	License  string     `json:"license,omitempty"`
+	Archived bool       `json:"archived,omitempty"`
 }
 
 // Health says whether a repository's module compiles, and what it exports
@@ -63,6 +69,7 @@ func BuildRegistry(ctx context.Context, g *GitHub, repos []string) (*Registry, m
 		exports   []string
 		healthErr error
 		sha       string
+		meta      *RepoInfo
 		err       error
 	}
 	jobs := make(chan string)
@@ -81,12 +88,14 @@ func BuildRegistry(ctx context.Context, g *GitHub, repos []string) (*Registry, m
 				// The manifest is already read: the second request is the
 				// module, as Inspect makes it after its own Manifest call.
 				exports, healthErr := g.compileMain(ctx, repo, m)
+				meta, _ := g.Repo(ctx, repo)
 				results <- result{
 					repo:      repo,
 					m:         m,
 					exports:   exports,
 					healthErr: healthErr,
 					sha:       g.releaseSHA256(ctx, repo),
+					meta:      meta,
 				}
 			}
 		}()
@@ -125,6 +134,14 @@ func BuildRegistry(ctx context.Context, g *GitHub, repos []string) (*Registry, m
 			entry.Health.Status = "error"
 			entry.Health.Error = r.healthErr.Error()
 			entry.Health.Exports = nil
+		}
+		if r.meta != nil {
+			entry.Stars = r.meta.Stars
+			entry.PushedAt = r.meta.PushedAt
+			entry.Archived = r.meta.Archived
+			if r.meta.License != nil {
+				entry.License = r.meta.License.SPDXID
+			}
 		}
 		old, ok := byID[entry.ID]
 		if !ok || newerEntry(entry, old) {

@@ -34,6 +34,8 @@ func main() {
 		install(os.Args[2:])
 	case "dev":
 		dev(os.Args[2:])
+	case "site":
+		site(os.Args[2:])
 	case "help", "-h", "--help":
 		usage()
 	default:
@@ -53,6 +55,7 @@ func usage() {
   mygo-plugin install <id|repo> <plugins>
                                   install a plugin from GitHub, by id from registry.json
   mygo-plugin dev [dir]          recheck a plugin when its files change
+  mygo-plugin site [-o f]        write registry.json as a static HTML page
 
 check takes -app-version to enforce minAppVersion.
 `)
@@ -348,6 +351,32 @@ func parseArgs(fs *flag.FlagSet, args []string) []string {
 	}
 	fs.Parse(flags)
 	return pos
+}
+
+func site(args []string) {
+	fs := flag.NewFlagSet("site", flag.ExitOnError)
+	registry := fs.String("registry", "registry.json", "the registry to read")
+	out := fs.String("o", "site/index.html", "the page to write")
+	parseArgs(fs, args)
+	reg, err := plugin.ReadRegistry(*registry)
+	if err != nil {
+		fail(err)
+	}
+	if err := os.MkdirAll(filepath.Dir(*out), 0o755); err != nil {
+		fail(err)
+	}
+	f, err := os.Create(*out)
+	if err != nil {
+		fail(err)
+	}
+	if err := plugin.WriteSite(f, reg); err != nil {
+		f.Close()
+		fail(err)
+	}
+	if err := f.Close(); err != nil {
+		fail(err)
+	}
+	fmt.Println(*out)
 }
 
 func fail(err error) {
