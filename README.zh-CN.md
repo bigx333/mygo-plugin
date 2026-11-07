@@ -66,7 +66,9 @@ err = p.Call("search", map[string]any{"query": "周杰伦", "kind": "tracks", "o
 
 播放的**数据面留在 Go**：插件 `stream` 只返回 `{ url, headers, type }`，宿主自己下载、解码、播放，音频字节不经过 JS。歌词同理，插件返回文本，宿主排版。
 
-MyGo 把自定义 scheme 的页面当作应用自己的页面，可以调用 Go 方法（[issue #729](https://github.com/egoist/mygo/issues/729)）。插件 UI 放进 WebView 就会继承这份信任，或者需要一个 MyGo 还没有的模式。这个宿主绕开了它：插件没有页面、没有 bridge、没有 DOM，只能看到 manifest 声明过的宿主函数。
+MyGo 已经区分可信页面和不可信页面：需要 HTML 的插件 UI 可以放进 `PageOptions{Untrusted: true}` 的 WebView，它调用不了 Go 方法，只能触达应用自己的 handler。这个宿主面向不需要 HTML 的插件：原生 UI 由 Go 绘制，第三方代码画不了。这里的插件没有页面、没有 bridge、没有 DOM，只能看到 manifest 声明过的宿主函数，数据由宿主用原生视图渲染。
+
+完整的威胁模型，以及框架级边界需要回答的问题，见 [docs/trust-model.md](docs/trust-model.md)。
 
 这就是性能的关键：moejs 的调用是微秒级，但真正的省是在于不把音频、封面、歌词塞进运行时的 JSON。保持调用粗粒度，别做万能 RPC。
 

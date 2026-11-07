@@ -66,7 +66,9 @@ A plugin cannot touch the host's UI tree. The host builds its sidebar from `plug
 
 The playback **data plane stays in Go**: a plugin's `stream` returns only `{ url, headers, type }`; the host downloads, decodes and plays it, so audio bytes never cross into JavaScript. Lyrics work the same way: the plugin returns text, the host lays it out.
 
-MyGo treats pages of a custom scheme as the app's own, so they may call Go methods ([issue #729](https://github.com/egoist/mygo/issues/729)). A plugin UI in a WebView would inherit that trust, or need a mode MyGo does not have. This host sidesteps it: a plugin has no page, no bridge and no DOM; it sees only the host functions its manifest declares.
+MyGo already separates trusted pages from untrusted ones: a plugin UI that needs HTML can run in a WebView with `PageOptions{Untrusted: true}`, where it calls no Go method and reaches only what the app's handlers allow. This host is for plugins that don't need HTML: native UI is drawn in Go, so third-party code cannot draw it. A plugin here has no page, no bridge and no DOM; it sees only the host functions its manifest declares, and the host renders its data with native views.
+
+The threat model, and the questions a framework-level boundary would have to answer, are in [docs/trust-model.md](docs/trust-model.md).
 
 That is where the performance comes from. moejs calls take microseconds, but the real saving is not putting audio, covers and lyrics through JSON. Keep calls coarse; don't build a universal RPC.
 
