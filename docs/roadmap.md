@@ -206,7 +206,8 @@ generic page contract, trust model. Version 0.6.0; next release 0.7.0.
 ### Phase 1 — Contract v2 (2–4 weeks)
 
 Status: the manifest fields, commands, settings types, capability negotiation,
-Page v1 and the notes plugin are in `main`; the music adapter and forms remain.
+Page v1, the notes plugin, `adapters/music` and the host's actions/commands/
+Markdown are in `main`; forms remain.
 
 Deliverables:
 

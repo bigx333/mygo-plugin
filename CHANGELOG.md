@@ -12,6 +12,8 @@ mygo-plugin follows Semantic Versioning. Before 1.0, a minor version adds featur
 - `contract`, `contractVersion`, `capabilities`, `Options.Contract` and `host.capability`; a host refuses a plugin with another contract or a newer contract version.
 - Page v1: a Markdown detail body and item actions.
 - `examples/plugins/notes`: a non-music plugin using `contributes.pages` and `page`.
+- `adapters/music`: MyGo Music's sources as `Page` items with `Kind` and `Meta`.
+- The reference host renders item actions, a command bar and Markdown pages, and plays through the adapter.
 
 ## 0.6.0
 

@@ -6,6 +6,7 @@ import (
 
 	"github.com/egoist/mygo/audio"
 	plugin "github.com/yxxbc/mygo-plugin"
+	"github.com/yxxbc/mygo-plugin/adapters/music"
 )
 
 // TestStream downloads and decodes a real track, when a plugin and network
@@ -16,26 +17,27 @@ func TestStream(t *testing.T) {
 	if dir == "" || os.Getenv("MYGO_PLUGIN_STREAM") == "" {
 		t.Skip("set MYGO_PLUGIN_REAL and MYGO_PLUGIN_STREAM")
 	}
-	p, err := plugin.Load(dir, plugin.Options{AppVersion: "0.3.0", DataDir: t.TempDir()})
+	p, err := plugin.Load(dir, plugin.Options{AppVersion: "0.6.0", DataDir: t.TempDir()})
 	if err != nil {
 		t.Fatal(err)
 	}
 	defer p.Close()
+	a := music.New(p)
 
-	var res SearchResult
-	if err := p.Call("search", map[string]any{"query": "周杰伦", "kind": "tracks", "offset": 0}, &res); err != nil {
+	res, err := a.Search("周杰伦")
+	if err != nil {
 		t.Fatal(err)
 	}
-	if len(res.Tracks) == 0 {
+	if len(res.Sections) == 0 || len(res.Sections[0].Items) == 0 {
 		t.Fatal("no tracks")
 	}
-	var lastErr error
-	for i, tr := range res.Tracks {
+	lastErr := error(nil)
+	for i, item := range res.Sections[0].Items {
 		if i >= 10 {
 			break
 		}
-		var s Stream
-		if err := p.Call("stream", map[string]string{"id": tr.ID, "quality": "high"}, &s); err != nil {
+		s, err := a.Stream(item.Meta["trackID"].(string))
+		if err != nil {
 			lastErr = err
 			continue
 		}
@@ -52,9 +54,9 @@ func TestStream(t *testing.T) {
 			continue
 		}
 		if d := player.Duration(); d <= 0 {
-			t.Errorf("%s: duration = %v", tr.Name, d)
+			t.Errorf("%s: duration = %v", item.Title, d)
 		} else {
-			t.Logf("%s: %s, %v", tr.Name, s.Type, d)
+			t.Logf("%s: %s, %v", item.Title, s.Type, d)
 		}
 		player.Close()
 		os.Remove(path)

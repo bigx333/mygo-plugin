@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	plugin "github.com/yxxbc/mygo-plugin"
+	"github.com/yxxbc/mygo-plugin/adapters/music"
 )
 
 // TestContract reads the real plugin this example is built around, when one is
@@ -14,28 +15,29 @@ func TestContract(t *testing.T) {
 	if dir == "" {
 		t.Skip("set MYGO_PLUGIN_REAL to a NetEase plugin folder")
 	}
-	p, err := plugin.Load(dir, plugin.Options{AppVersion: "0.3.0", DataDir: t.TempDir()})
+	p, err := plugin.Load(dir, plugin.Options{AppVersion: "0.6.0", DataDir: t.TempDir()})
 	if err != nil {
 		t.Fatal(err)
 	}
 	defer p.Close()
+	a := music.New(p)
 
-	var home Page
-	if err := p.Call("home", nil, &home); err != nil {
+	home, err := a.Home()
+	if err != nil {
 		t.Fatal(err)
 	}
 	if len(home.Sections) == 0 {
 		t.Error("home has no sections")
 	}
 
-	var res SearchResult
-	if err := p.Call("search", map[string]any{"query": "周杰伦", "kind": "tracks", "offset": 0}, &res); err != nil {
+	res, err := a.Search("周杰伦")
+	if err != nil {
 		t.Fatal(err)
 	}
-	if len(res.Tracks) == 0 {
+	if len(res.Sections) == 0 || len(res.Sections[0].Items) == 0 {
 		t.Fatal("search returned no tracks")
 	}
-	if res.Tracks[0].ID == "" || res.Tracks[0].Name == "" || len(res.Tracks[0].Artists) == 0 {
-		t.Errorf("track = %+v", res.Tracks[0])
+	if res.Sections[0].Items[0].Meta["trackID"] == "" || res.Sections[0].Items[0].Title == "" {
+		t.Errorf("item = %+v", res.Sections[0].Items[0])
 	}
 }

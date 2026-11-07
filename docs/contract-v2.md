@@ -110,9 +110,10 @@ export function command({ id, args }) {
 }
 ```
 
-`plugin.RunCommand(id, args)` calls it; a plugin without the export returns
-`ErrUnsupported`. The runtime carries no menu or shortcut model: the host
-decides where a command appears.
+`plugin.RunCommand(id, args)` calls it; `plugin.Command(id, args, &out)` also
+returns what it answers. A plugin without the export returns `ErrUnsupported`.
+The runtime carries no menu or shortcut model: the host decides where a
+command appears.
 
 ### Settings
 
@@ -153,7 +154,9 @@ Installing is a trust decision: the CLI prints the permissions and requires
 - A generic plugin declares `contributes.pages` and exports `page`.
 - A host refuses a plugin whose `contract` differs from the one it provides,
   and a `contractVersion` newer than it implements.
-- The runtime does not know what a "track" or a "note" is. Adapters do.
+- The runtime does not know what a "track" or a "note" is. Adapters do:
+  `adapters/music` maps MyGo Music's tracks, playlists, stations and streams to
+  `Page` items with `Kind` and `Meta`.
 
 ## Open
 

@@ -205,7 +205,7 @@ MYGO_PLUGIN_REAL=../mygo-music-netease MYGO_PLUGIN_NETWORK=1 go test -run TestRe
 
 ## 参考宿主
 
-[`examples/host`](examples/host) 是一个用本模块跑插件的小型 MyGo 原生应用：通用页面来自 `contributes.pages`，MyGo Music 的 `navigation` 和 `browse` 也能跑；首次使用有网络同意卡，播放由 Go 下载音频流。它是“应用如何托管插件”的样板，不是成品。
+[`examples/host`](examples/host) 是一个用本模块跑插件的小型 MyGo 原生应用：通用页面来自 `contributes.pages`，MyGo Music 的 `navigation` 和 `browse` 通过 `adapters/music` 适配；条目动作、命令栏、Markdown 详情、网络同意卡都在，播放由 Go 下载音频流。它是“应用如何托管插件”的样板，不是成品。
 
 ## 版本
 

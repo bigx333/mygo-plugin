@@ -11,7 +11,7 @@ import (
 // from contributes.pages, answered by the plugin's page export.
 func TestNotesPlugin(t *testing.T) {
 	p, err := plugin.Load(filepath.Join("..", "plugins", "notes"), plugin.Options{
-		AppVersion: "0.3.0",
+		AppVersion: "0.6.0",
 		DataDir:    t.TempDir(),
 	})
 	if err != nil {
@@ -30,36 +30,35 @@ func TestNotesPlugin(t *testing.T) {
 		t.Fatalf("nav = %+v", h.nav)
 	}
 
-	title, subtitle, rows, err := h.load(h.nav[0])
+	page, err := h.load(h.nav[0])
 	if err != nil {
 		t.Fatal(err)
 	}
-	if title != "Notes" {
-		t.Errorf("title = %q", title)
+	if page.Title != "Notes" {
+		t.Errorf("title = %q", page.Title)
 	}
-	if subtitle != "A generic plugin, not a music source" {
-		t.Errorf("subtitle = %q", subtitle)
+	if page.Subtitle != "A generic plugin, not a music source" {
+		t.Errorf("subtitle = %q", page.Subtitle)
 	}
+	rows := rowsOf(page)
 	if len(rows) != 2 { // the section header and its item
 		t.Fatalf("rows = %+v", rows)
 	}
-	if rows[0].kind != rowHeader || rows[0].title != "Today" {
+	if rows[0].kind != rowHeader || rows[0].item.Title != "Today" {
 		t.Errorf("header = %+v", rows[0])
 	}
 	got := rows[1]
-	if got.kind != rowItem || got.id != "welcome" || got.title != "Welcome" ||
-		got.subtitle != "This page came from a plugin" {
+	if got.kind != rowItem || got.item.ID != "welcome" || got.item.Title != "Welcome" ||
+		got.item.Subtitle != "This page came from a plugin" {
 		t.Errorf("row = %+v", got)
 	}
 
-	// The command export is only exercised when the API calls it by name;
-	// this version has Call, so ask for the hello answer directly.
 	if p.Can("command") {
 		var out struct {
 			OK      bool   `json:"ok"`
 			Message string `json:"message"`
 		}
-		if err := p.Call("command", map[string]any{"id": "hello"}, &out); err != nil {
+		if err := p.Command("hello", nil, &out); err != nil {
 			t.Fatal(err)
 		}
 		if !out.OK || out.Message != "Hello from Notes" {

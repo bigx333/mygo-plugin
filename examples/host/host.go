@@ -12,36 +12,28 @@ import (
 	"github.com/egoist/mygo"
 	"github.com/egoist/mygo/audio"
 	"github.com/egoist/mygo/ui"
+	"github.com/egoist/mygo/ui/markdown"
 	plugin "github.com/yxxbc/mygo-plugin"
+	"github.com/yxxbc/mygo-plugin/adapters/music"
 )
 
 type rowKind int
 
 const (
 	rowHeader rowKind = iota
-	rowTrack
-	rowPlaylist
-	rowLink
-	rowStation
-	rowShow
 	rowItem
 )
 
 type row struct {
-	kind     rowKind
-	id       string
-	title    string
-	subtitle string
-	page     string
-	meta     map[string]any
-	track    Track
+	kind rowKind
+	item plugin.Item
 }
 
 func (r row) key() any {
-	if r.id != "" {
-		return r.id
+	if r.item.ID != "" {
+		return r.item.ID
 	}
-	return r.title
+	return r.item.Title
 }
 
 type host struct {
@@ -52,6 +44,7 @@ type host struct {
 	plugins []*plugin.Plugin
 	cur     *plugin.Plugin
 	generic bool
+	adapter *music.Adapter
 	nav     []plugin.Navigation
 	navAt   int
 	gen     int
@@ -59,11 +52,14 @@ type host struct {
 	query    string
 	title    string
 	subtitle string
+	page     *plugin.Page
 	rows     []row
 	busy     bool
 	err      string
 	notice   string
 	signIn   string
+
+	md markdown.Options
 
 	player  *audio.Player
 	now     string
@@ -84,7 +80,7 @@ func newHost(pluginsDir, dataDir string) *host {
 
 func (h *host) start() {
 	h.plugins = plugin.Discover(h.pluginsDir, plugin.Options{
-		AppVersion: "0.3.0",
+		AppVersion: "0.6.0",
 		DataDir:    h.dataDir,
 		Host: plugin.Host{
 			Language: func() string { return "en" },
@@ -118,6 +114,10 @@ func abs(p string) string {
 func (h *host) selectPlugin(i int) {
 	h.cur = h.plugins[i]
 	h.generic = h.cur.Manifest().Contributes != nil && len(h.cur.Manifest().Contributes.Pages) > 0
+	h.adapter = nil
+	if !h.generic && (h.cur.Can("stream") || h.cur.Can("browse")) {
+		h.adapter = music.New(h.cur)
+	}
 	h.nav = h.cur.Manifest().Pages()
 	if len(h.nav) == 0 {
 		h.nav = []plugin.Navigation{{Title: "Home", Builtin: "home"}}
@@ -133,6 +133,7 @@ func (h *host) openNav(i int) {
 	h.notice = ""
 	h.title = navTitle(h.nav[i])
 	h.subtitle = ""
+	h.page = nil
 	h.rows = nil
 	h.busy = true
 	if h.needsConsent() {
@@ -142,79 +143,65 @@ func (h *host) openNav(i int) {
 	gen := h.gen
 	n := h.nav[i]
 	go func() {
-		title, subtitle, rows, err := h.load(n)
+		page, err := h.load(n)
 		h.win.Update(func() {
 			if gen != h.gen {
 				return
 			}
 			h.busy = false
-			h.err = ""
 			if err != nil {
 				h.err = err.Error()
 				return
 			}
-			h.title, h.subtitle, h.rows = title, subtitle, rows
+			h.show(page)
 		})
 	}()
 }
 
-func (h *host) load(n plugin.Navigation) (string, string, []row, error) {
+func (h *host) load(n plugin.Navigation) (*plugin.Page, error) {
 	if h.generic {
-		page, err := h.cur.Page(n.Page)
-		if err != nil {
-			return "", "", nil, err
-		}
-		return page.Title, page.Subtitle, genericRows(page), nil
+		return h.cur.Page(n.Page)
+	}
+	if h.adapter == nil {
+		return nil, fmt.Errorf("this plugin is neither a generic page plugin nor a music source")
 	}
 	if n.Page != "" {
-		var page Page
-		if err := h.cur.Call("browse", map[string]string{"page": n.Page}, &page); err != nil {
-			return "", "", nil, err
-		}
-		return page.Title, page.Subtitle, rowsOf(page), nil
+		return h.adapter.Page(n.Page)
 	}
 	switch n.Builtin {
 	case "home":
-		var page Page
-		if err := h.cur.Call("home", nil, &page); err != nil {
-			return "", "", nil, err
-		}
-		return page.Title, page.Subtitle, rowsOf(page), nil
+		return h.adapter.Home()
 	case "liked":
-		var liked struct {
-			Tracks []Track `json:"tracks"`
-		}
-		if err := h.cur.Call("liked", map[string]int{"offset": 0}, &liked); err != nil {
-			return "", "", nil, err
-		}
-		return "Liked Songs", "", trackRows(liked.Tracks), nil
+		return h.adapter.Liked()
 	case "stations":
-		var stations []Station
-		if err := h.cur.Call("stations", nil, &stations); err != nil {
-			return "", "", nil, err
-		}
-		rows := make([]row, 0, len(stations))
-		for _, s := range stations {
-			rows = append(rows, row{kind: rowStation, id: s.ID, title: s.Name, subtitle: s.Description})
-		}
-		return "Stations", "", rows, nil
+		return h.adapter.Stations()
 	}
-	return "", "", nil, fmt.Errorf("this host doesn't have the %q page", n.Builtin)
+	return nil, fmt.Errorf("this host doesn't have the %q page", n.Builtin)
+}
+
+func (h *host) show(page *plugin.Page) {
+	h.page = page
+	h.title = page.Title
+	if h.title == "" {
+		h.title = navTitle(h.nav[h.navAt])
+	}
+	h.subtitle = page.Subtitle
+	h.rows = rowsOf(page)
 }
 
 func (h *host) search() {
 	q := strings.TrimSpace(h.query)
-	if h.generic || q == "" || h.cur == nil || h.needsConsent() {
+	if h.adapter == nil || q == "" || h.cur == nil || h.needsConsent() {
 		return
 	}
 	h.gen++
 	gen := h.gen
 	h.busy = true
 	h.err = ""
+	h.page = nil
 	h.rows = nil
 	go func() {
-		var res SearchResult
-		err := h.cur.Call("search", map[string]any{"query": q, "kind": "tracks", "offset": 0}, &res)
+		page, err := h.adapter.Search(q)
 		h.win.Update(func() {
 			if gen != h.gen {
 				return
@@ -224,22 +211,23 @@ func (h *host) search() {
 				h.err = err.Error()
 				return
 			}
-			h.title = "Search: " + q
-			h.subtitle = fmt.Sprintf("%d tracks", len(res.Tracks))
-			h.rows = trackRows(res.Tracks)
+			h.show(page)
 		})
 	}()
 }
 
 func (h *host) loadPlaylist(id string) {
+	if h.adapter == nil {
+		return
+	}
 	h.gen++
 	gen := h.gen
 	h.busy = true
 	h.err = ""
+	h.page = nil
 	h.rows = nil
 	go func() {
-		var p PlaylistDetail
-		err := h.cur.Call("playlist", map[string]string{"id": id}, &p)
+		page, err := h.adapter.Playlist(id)
 		h.win.Update(func() {
 			if gen != h.gen {
 				return
@@ -249,9 +237,7 @@ func (h *host) loadPlaylist(id string) {
 				h.err = err.Error()
 				return
 			}
-			h.title = p.Name
-			h.subtitle = p.Description
-			h.rows = trackRows(p.Tracks)
+			h.show(page)
 		})
 	}()
 }
@@ -260,60 +246,105 @@ func (h *host) activate(i int) {
 	if i < 0 || i >= len(h.rows) {
 		return
 	}
-	r := h.rows[i]
-	switch r.kind {
-	case rowTrack:
-		h.play(r.track)
-	case rowPlaylist:
-		h.loadPlaylist(r.id)
-	case rowLink:
-		if r.page != "" {
-			for j, n := range h.nav {
-				if n.Page == r.page {
-					h.openNav(j)
-					return
-				}
-			}
-			h.nav = append(h.nav, plugin.Navigation{Title: r.title, Page: r.page})
-			h.openNav(len(h.nav) - 1)
-		}
-	case rowStation:
-		h.openStation(r.id)
-	case rowItem:
-		if page, ok := r.meta["page"].(string); ok && page != "" {
-			for j, n := range h.nav {
-				if n.Page == page {
-					h.openNav(j)
-					return
-				}
-			}
-			h.nav = append(h.nav, plugin.Navigation{Title: r.title, Page: page})
-			h.openNav(len(h.nav) - 1)
+	item := h.rows[i].item
+	switch item.Kind {
+	case "track":
+		h.play(item)
+	case "playlist":
+		h.loadPlaylist(metaString(item.Meta, "playlistID"))
+	case "link":
+		h.openPage(metaString(item.Meta, "page"), item.Title)
+	case "station":
+		h.openStation(metaString(item.Meta, "stationID"))
+	default:
+		if page := metaString(item.Meta, "page"); page != "" {
+			h.openPage(page, item.Title)
 			return
 		}
-		h.notice = r.title + " — " + r.subtitle
+		if len(item.Actions) > 0 {
+			h.runAction(item.Actions[0])
+			return
+		}
+		h.notice = item.Title + " — " + item.Subtitle
 		h.win.Invalidate()
 	}
 }
 
+func (h *host) openPage(id, title string) {
+	if id == "" {
+		return
+	}
+	for j, n := range h.nav {
+		if n.Page == id {
+			h.openNav(j)
+			return
+		}
+	}
+	h.nav = append(h.nav, plugin.Navigation{Title: title, Page: id})
+	h.openNav(len(h.nav) - 1)
+}
+
 func (h *host) openStation(id string) {
+	if h.adapter == nil {
+		return
+	}
 	h.busy = true
 	h.err = ""
 	go func() {
-		var tracks []Track
-		err := h.cur.Call("stationNext", map[string]string{"id": id}, &tracks)
+		items, err := h.adapter.StationNext(id)
 		h.win.Update(func() {
 			h.busy = false
 			if err != nil {
 				h.err = err.Error()
 				return
 			}
-			if len(tracks) > 0 {
-				h.title = "Station"
-				h.subtitle = tracks[0].Name
-				h.rows = trackRows(tracks)
-				h.play(tracks[0])
+			h.show(&plugin.Page{Title: "Station", Sections: []plugin.Section{{Items: items}}})
+			for _, it := range items {
+				if it.Kind == "track" {
+					h.play(it)
+					return
+				}
 			}
+		})
+	}()
+}
+
+func (h *host) runAction(a plugin.Action) {
+	switch a.Kind {
+	case "url":
+		if a.URL != "" {
+			if err := mygo.Shell.OpenExternal(a.URL); err != nil {
+				h.notice = err.Error()
+			}
+		}
+	case "command":
+		h.runCommand(metaString(a.Meta, "command"), a.Meta)
+	default:
+		h.notice = "This host doesn't know the action " + a.Title
+	}
+	h.win.Invalidate()
+}
+
+func (h *host) runCommand(id string, args map[string]any) {
+	if id == "" || h.cur == nil {
+		return
+	}
+	h.notice = "Running " + id + "…"
+	h.win.Invalidate()
+	go func() {
+		var out any
+		err := h.cur.Command(id, args, &out)
+		h.win.Update(func() {
+			if err != nil {
+				h.notice = err.Error()
+				return
+			}
+			if out == nil {
+				h.notice = id + " ran"
+				return
+			}
+			b, _ := json.Marshal(out)
+			h.notice = string(b)
 		})
 	}()
 }
@@ -378,74 +409,35 @@ func navTitle(n plugin.Navigation) string {
 	return n.Page
 }
 
-func genericRows(page *plugin.Page) []row {
+func rowsOf(page *plugin.Page) []row {
 	var out []row
 	for _, s := range page.Sections {
 		if s.Title != "" {
-			out = append(out, row{kind: rowHeader, title: s.Title})
+			out = append(out, row{kind: rowHeader, item: plugin.Item{Title: s.Title}})
 		}
 		for _, item := range s.Items {
-			out = append(out, row{
-				kind:     rowItem,
-				id:       item.ID,
-				title:    item.Title,
-				subtitle: item.Subtitle,
-				meta:     item.Meta,
-			})
+			out = append(out, row{kind: rowItem, item: item})
 		}
 	}
 	return out
 }
 
-func rowsOf(page Page) []row {
-	var out []row
-	for _, s := range page.Sections {
-		if s.Title != "" {
-			out = append(out, row{kind: rowHeader, title: s.Title})
-		}
-		for _, t := range s.Tracks {
-			out = append(out, row{kind: rowTrack, id: t.ID, title: t.Name, subtitle: artists(t), track: t})
-		}
-		for _, p := range s.Playlists {
-			out = append(out, row{kind: rowPlaylist, id: p.ID, title: p.Name, subtitle: playlistLine(p)})
-		}
-		for _, l := range s.Links {
-			out = append(out, row{kind: rowLink, title: l.Title, subtitle: l.Subtitle, page: l.Page})
-		}
-		for _, st := range s.Stations {
-			out = append(out, row{kind: rowStation, id: st.ID, title: st.Name, subtitle: st.Description})
-		}
-		for _, sh := range s.Shows {
-			out = append(out, row{kind: rowShow, id: sh.ID, title: sh.Name, subtitle: sh.Publisher})
-		}
-	}
-	return out
+func metaString(m map[string]any, key string) string {
+	v, _ := m[key].(string)
+	return v
 }
 
-func trackRows(tracks []Track) []row {
-	out := make([]row, 0, len(tracks))
-	for _, t := range tracks {
-		out = append(out, row{kind: rowTrack, id: t.ID, title: t.Name, subtitle: artists(t), track: t})
+func metaInt(m map[string]any, key string) int {
+	switch v := m[key].(type) {
+	case int:
+		return v
+	case float64:
+		return int(v)
+	case json.Number:
+		n, _ := v.Int64()
+		return int(n)
 	}
-	return out
-}
-
-func artists(t Track) string {
-	names := make([]string, 0, len(t.Artists))
-	for _, a := range t.Artists {
-		names = append(names, a.Name)
-	}
-	return strings.Join(names, ", ")
-}
-
-func playlistLine(p Playlist) string {
-	switch {
-	case p.Owner != "" && p.TrackCount > 0:
-		return fmt.Sprintf("%s · %d tracks", p.Owner, p.TrackCount)
-	case p.TrackCount > 0:
-		return fmt.Sprintf("%d tracks", p.TrackCount)
-	}
-	return p.Description
+	return 0
 }
 
 func clock(ms int) string {

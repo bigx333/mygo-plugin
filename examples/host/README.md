@@ -22,8 +22,8 @@ plugin data somewhere with `-data /path/to/data`.
   `examples/plugins` (see above) and its "Notes" page appears in the sidebar.
   `testdata/generic` covers the same path in the root repository.
 - **Music plugins** are MyGo Music sources: they declare `navigation` and
-  export `browse`. The host adapts their tracks and playlists through the types
-  in `contract.go`.
+  export `browse`. The host adapts them through `adapters/music`, which turns
+  tracks, playlists, stations and links into generic `Page` items.
 
 `TestNotesPlugin` in `generic_test.go` loads `examples/plugins/notes` and
 checks its page; `TestGenericPluginPages` in `host_test.go` does the same for
@@ -41,13 +41,15 @@ checks its page; `TestGenericPluginPages` in `host_test.go` does the same for
 - Search calls `search({ query, kind: "tracks" })` on Enter
 - Rows for tracks, playlists, links, stations and shows; a click plays a track,
   opens a playlist, or follows a link's page
-- Playback: `stream({ id, quality: "high" })`, then the host downloads the URL
-  with the plugin's headers and decodes it with `mygo/audio`
+- Item actions: `kind: "command"` calls the plugin's command, `kind: "url"`
+  opens the page; they show as small buttons under the row
+- A command bar from `contributes.commands`; its answer shows in the notice
+  line
+- A Markdown body when a page has `markdown`, above its sections
+- Playback: `adapters/music` resolves `stream({ id, quality: "high" })`, then
+  the host downloads the URL with the plugin's headers and decodes it with
+  `mygo/audio`
 - A now playing bar with pause and stop
-
-The track, playlist and section types in `contract.go` are this app's reading
-of MyGo Music's source contract, not part of `mygo-plugin`. Another host with
-another kind of plugin defines its own.
 
 ## What it doesn't do
 
@@ -56,8 +58,6 @@ another kind of plugin defines its own.
 - Covers: rows use letter avatars, not the plugin's images
 - FLAC: the host asks for `high` (MP3); `mygo/audio` has no FLAC decoder
 - One plugin at a time: it picks the first one it finds
-- Commands: there is no command UI yet, so a plugin's `command` export is not
-  called from the window (the notes plugin's export is only exercised by a test)
 - Install UI: use the `mygo-plugin` CLI
 
 It is a reference, not a product: copy the shape, not the file.

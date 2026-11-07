@@ -205,7 +205,7 @@ The full research and plan are in [docs/roadmap.md](docs/roadmap.md). The next m
 
 ## Reference host
 
-[`examples/host`](examples/host) is a small native MyGo app that runs plugins with this module: generic pages from `contributes.pages`, MyGo Music's `navigation` and `browse`, a network consent card, and playback that downloads the stream in Go. It is the shape to copy for an app that hosts plugins, not a product.
+[`examples/host`](examples/host) is a small native MyGo app that runs plugins with this module: generic pages from `contributes.pages`, MyGo Music's `navigation` and `browse` through `adapters/music`, item actions, a command bar, Markdown detail pages, a network consent card, and playback that downloads the stream in Go. It is the shape to copy for an app that hosts plugins, not a product.
 
 ## Versioning
 

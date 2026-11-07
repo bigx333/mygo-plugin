@@ -8,18 +8,23 @@ import (
 	"time"
 
 	"github.com/egoist/mygo/audio"
+	plugin "github.com/yxxbc/mygo-plugin"
+	"github.com/yxxbc/mygo-plugin/adapters/music"
 )
 
-func (h *host) play(t Track) {
-	if h.cur == nil {
+func (h *host) play(it plugin.Item) {
+	if h.cur == nil || h.adapter == nil {
 		return
 	}
-	name := t.Name
+	id := metaString(it.Meta, "trackID")
+	if id == "" {
+		return
+	}
+	name := it.Title
 	h.notice = "Loading " + name
 	h.win.Invalidate()
 	go func() {
-		var s Stream
-		err := h.cur.Call("stream", map[string]string{"id": t.ID, "quality": "high"}, &s)
+		s, err := h.adapter.Stream(id)
 		if err != nil {
 			h.fail(err)
 			return
@@ -92,7 +97,7 @@ func (h *host) stopPlayer() {
 	}
 }
 
-func download(s Stream) (*os.File, string, error) {
+func download(s *music.Stream) (*os.File, string, error) {
 	req, err := http.NewRequest(http.MethodGet, s.URL, nil)
 	if err != nil {
 		return nil, "", err
