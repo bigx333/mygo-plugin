@@ -1,29 +1,31 @@
 # mygo-plugin
 
-MyGo 应用的原生插件宿主：纯 Go、进程内、无 WebView。插件是 `plugin.json` 加一个 JavaScript / TypeScript 模块，由 [moejs](https://github.com/MoeForge/moejs) 在每个插件自己的运行时里跑；界面仍由宿主用 MyGo 的原生 UI 绘制。
+[简体中文](README.zh-CN.md)
 
-这不是又一个 WebView 插件容器。插件拿不到 DOM，也画不了界面；它提供数据，宿主决定怎么画。这样插件再重，应用也还是 MyGo 的应用。
+A native plugin host for MyGo apps: pure Go, in-process, no WebView. A plugin is a `plugin.json` plus a JavaScript or TypeScript module, run by [moejs](https://github.com/MoeForge/moejs) in a runtime of its own; the interface is still drawn by the host with MyGo's native UI.
 
-`plugin.json` 与 MyGo Music 的插件同形，现有的网易云等插件可以直接加载。
+This is not another WebView plugin container. A plugin gets no DOM and cannot draw the interface: it provides data, and the host decides how to show it. However heavy a plugin is, the app stays a MyGo app.
 
-## 为什么单独做
+The `plugin.json` shape is the one MyGo Music uses, so existing plugins, such as the NetEase one, load unchanged.
 
-MyGo 自带的 `mygo.Plugin` 是**编译期**的能力模块：Go service 加 npm 包，`mygo.Use` 注册，只有可信页面能调。它适合官方能力（fetch、sqlite、terminal），不适合安装第三方插件。
+## Why a separate project
 
-MyGo Music 有一套完整的第三方插件运行时，但它在 `internal/plugin` 里，和音乐类型绑死，别的应用拿不走。这个仓库把宿主抽出来：manifest、安装、权限、运行时、限制、CLI，全都不依赖音乐。
+MyGo's own `mygo.Plugin` is a **compile-time** capability module: a Go service plus an npm package, registered with `mygo.Use`, callable only from trusted pages. It suits official capabilities (fetch, sqlite, terminal), not installable third-party plugins.
 
-## 能力
+MyGo Music has a complete third-party plugin runtime, but it lives in `internal/plugin`, tied to its music types, and other apps cannot take it. This repository extracts the host: manifest, install, permissions, runtime, limits and CLI, with no dependency on music.
 
-- 每个插件一个 moejs runtime，独立堆、独立事件循环，互不影响
-- ES modules、async/await、TypeScript（`main` 为 `.ts` 时）
-- `host` API：storage、crypto（MD5 / AES-ECB）、language、setting、openURL、signInPrompt
-- `fetch` 按 `permissions.network` 的 host allowlist 放行；没有权限就完全断网
-- 调用超时、256 MiB 内存上限、卡死自动重启
-- 从文件夹或 ZIP 安装；ZIP 防穿越、限大小；`List` / `Uninstall`
-- `mygo-plugin` CLI：`check`、`pack`、`new`、`list`
-- manifest JSON Schema：`spec/plugin.schema.json`
+## What it does
 
-## 快速开始
+- One moejs runtime per plugin, with its own heap and event loop
+- ES modules, async/await, TypeScript (when `main` ends in `.ts`)
+- `host` API: storage, crypto (MD5 / AES-ECB), language, setting, openURL, signInPrompt
+- `fetch` limited to `permissions.network` hosts; no permission means no network
+- Call timeouts, a 256 MiB memory limit, and automatic restart when stuck
+- Install from a folder or a ZIP; ZIP path traversal and size limits; `List` / `Uninstall`
+- `mygo-plugin` CLI: `check`, `pack`, `new`, `list`
+- Manifest JSON Schema: `spec/plugin.schema.json`
+
+## Quick start
 
 ```go
 import plugin "github.com/yxxbc/mygo-plugin"
@@ -51,40 +53,40 @@ var result struct {
 err = p.Call("search", map[string]any{"query": "周杰伦", "kind": "tracks", "offset": 0}, &result)
 ```
 
-`Options.DataDir` 必须由应用指定，并且按应用区分：同一个插件装进两个应用，不能共享 session 和 storage。
+`Options.DataDir` is required and must belong to the app: the same plugin installed in two apps must not share its session and storage.
 
-`Call` 的约定由应用定，不在这层：插件导出什么，应用就调什么。MyGo Music 的来源契约（`search` / `browse` / `stream` / `lyrics` / `signIn` …）是其中一个已存在的契约，现有插件直接可用。
+`Call`'s contract belongs to the app, not to this layer: whatever a plugin exports, the app calls. MyGo Music's source contract (`search` / `browse` / `stream` / `lyrics` / `signIn`, ...) is one such contract, and existing plugins work with it directly.
 
-## 原生的边界
+## The native boundary
 
-插件不能操作宿主的 UI 树。宿主从 `plugin.json` 的 `navigation` 生成侧栏，用户点某一项时：
+A plugin cannot touch the host's UI tree. The host builds its sidebar from `plugin.json`'s `navigation`; when the listener opens an entry:
 
-- 有 `page`：调用插件的 `browse({ page })`，拿回 `{ title, sections: [...] }` 之类的数据，用 MyGo 原生组件画
-- 有 `builtin`：宿主自己的页面（首页、喜欢、播客…）
+- with `page`: call the plugin's `browse({ page })`, get data such as `{ title, sections: [...] }`, and draw it with MyGo's native components
+- with `builtin`: show the host's own page (home, liked, podcasts, ...)
 
-播放的**数据面留在 Go**：插件 `stream` 只返回 `{ url, headers, type }`，宿主自己下载、解码、播放，音频字节不经过 JS。歌词同理，插件返回文本，宿主排版。
+The playback **data plane stays in Go**: a plugin's `stream` returns only `{ url, headers, type }`; the host downloads, decodes and plays it, so audio bytes never cross into JavaScript. Lyrics work the same way: the plugin returns text, the host lays it out.
 
-这就是性能的关键：moejs 的调用是微秒级，但真正的省是在于不把音频、封面、歌词塞进运行时的 JSON。保持调用粗粒度，别做万能 RPC。
+That is where the performance comes from. moejs calls take microseconds, but the real saving is not putting audio, covers and lyrics through JSON. Keep calls coarse; don't build a universal RPC.
 
-图标不是文件，是宿主图标集里的名字（`calendar`、`star`、`playlist`…）。macOS 上宿主可以用 `plugins/sfsymbols` 画系统 SF Symbols，其他平台用自己的回退集。插件不该带 SVG，否则每个宿主都要处理栅格化和设计一致性。
+Icons are names in the host's icon set (`calendar`, `star`, `playlist`, ...), not files. On macOS a host can draw Apple's SF Symbols with `plugins/sfsymbols`; other platforms use their own fallback set. Plugins should not ship SVG, or every host has to deal with rasterization and design consistency.
 
 ## Host API
 
-| 名称 | 说明 |
+| Name | What it does |
 | --- | --- |
-| `host.platform` / `host.arch` | 宿主平台 |
-| `host.dir` / `host.dataDir` | 插件目录 / 插件数据目录 |
-| `host.storage.get/set/remove` | 每插件独立的 JSON KV，落盘到 `storage.json` |
-| `host.crypto.md5` / `host.crypto.aesEcbEncrypt` | 十六进制输出，PKCS#7 填充 |
-| `host.language()` | BCP 47 语言标签 |
-| `host.setting(key)` | 用户给这个插件的设置值 |
-| `host.openURL(url)` | 只允许 http/https |
-| `host.signInPrompt({ qr, text })` | 登录时给宿主显示 |
-| `host.spawn` | 本版本不启动进程，调用会报错 |
+| `host.platform` / `host.arch` | The host's platform |
+| `host.dir` / `host.dataDir` | The plugin's folder / data folder |
+| `host.storage.get/set/remove` | Per-plugin JSON KV, written to `storage.json` |
+| `host.crypto.md5` / `host.crypto.aesEcbEncrypt` | Hex output, PKCS#7 padding |
+| `host.language()` | A BCP 47 language tag |
+| `host.setting(key)` | The value the listener gave this plugin's setting |
+| `host.openURL(url)` | http/https only |
+| `host.signInPrompt({ qr, text })` | What to show while signing in |
+| `host.spawn` | Starts no programs in this version; calling it returns an error |
 
-`permissions.process` 会被解析，但当前宿主不执行；需要起进程的宿主自己实现，并保持 deny-by-default。
+`permissions.process` is parsed but not executed by this host. A host that runs programs should implement it, and keep it deny-by-default.
 
-## 权限
+## Permissions
 
 ```json
 {
@@ -95,18 +97,18 @@ err = p.Call("search", map[string]any{"query": "周杰伦", "kind": "tracks", "o
 }
 ```
 
-- `network` 为空：`fetch` 不接网络
-- `example.com` 精确匹配；`*.example.com` 匹配子域；`*` 全放行
-- allowlist 在每次请求（含重定向）时检查
-- `process` 是声明，不是自动授权
+- Empty `network`: `fetch` has no network
+- `example.com` matches exactly; `*.example.com` matches subdomains; `*` allows everything
+- The allowlist is checked on every request, redirects included
+- `process` is a declaration, not a grant
 
-## 安装与分发
+## Installing and distributing
 
 ```go
-plugin.InstallDir(src, pluginsDir)   // 从文件夹
-plugin.InstallZip(zip, pluginsDir)   // 从 ZIP，plugin.json 在根或唯一子目录
+plugin.InstallDir(src, pluginsDir)   // from a folder
+plugin.InstallZip(zip, pluginsDir)   // from a ZIP; plugin.json at the root or in the one folder
 plugin.List(pluginsDir)
-plugin.Uninstall(pluginsDir, id)     // 保留数据，重装后 session 还在
+plugin.Uninstall(pluginsDir, id)     // keeps data, so a reinstall keeps the session
 ```
 
 ```sh
@@ -116,34 +118,34 @@ mygo-plugin new my-plugin
 mygo-plugin list ~/Library/Application\ Support/MyApp/plugins
 ```
 
-签名、registry 索引、从 GitHub release 直接安装还没做；见路线图。别在 v0.1 就自建审核后台。
+Signatures, a registry index and installing straight from a GitHub release are not done yet; see the roadmap. Don't build a review backend for v0.1.
 
-## 限制
+## Limits
 
-- 内存：默认 256 MiB，超过会被中断，下次调用重启
-- 时间：默认 30s 一次调用；卡死在 JS 里会被终止
-- 一个插件一个 runtime；调用串行进入该 runtime
-- 插件 `import` 不可用（单文件模块）；需要多文件时先打包
+- Memory: 256 MiB by default; going over interrupts the runtime, and the next call restarts it
+- Time: 30s per call by default; code stuck in JavaScript is terminated
+- One runtime per plugin; calls enter that runtime one at a time
+- `import` is not available (a single-file module); bundle first if you need several files
 
-## 开发
+## Development
 
 ```sh
 go test ./...
 go vet ./...
 
-# 用真实插件验证（不会进 CI）
+# Verify with a real plugin (not run in CI)
 MYGO_PLUGIN_REAL=../mygo-music-netease MYGO_PLUGIN_NETWORK=1 go test -run TestReal -v
 ```
 
-## 路线图
+## Roadmap
 
-- 从 GitHub release / topic 安装，deeplink
-- Ed25519 签名与安装校验
-- 进程权限的真实实现（allowlist + 授权 UI）
-- 静态 registry index（GitHub 即源，CI 生成 JSON）
-- 从宿主 Go 契约生成 `host.d.ts`，加 mock host 测试包
-- 标准图标名表与跨平台回退
+- Install from a GitHub release / topic, with a deeplink
+- Ed25519 signatures and install verification
+- A real implementation of the process permission (allowlist plus a grant UI)
+- A static registry index (GitHub as the source, JSON generated by CI)
+- Generate `host.d.ts` from the host's Go contract, and a mock host test package
+- A standard icon name table with cross-platform fallbacks
 
-## 来源与许可
+## Credits and license
 
-MIT。`plugin.json` 的字段形状与 MyGo Music 的插件兼容；本仓库是独立实现，不包含 MyGo Music 的代码。MyGo 是 [egoist/mygo](https://github.com/egoist/mygo)（MIT）。
+MIT. The `plugin.json` field shape is compatible with MyGo Music's plugins; this repository is an independent implementation and contains no code from MyGo Music. MyGo is [egoist/mygo](https://github.com/egoist/mygo) (MIT).
