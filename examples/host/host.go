@@ -24,6 +24,7 @@ const (
 	rowLink
 	rowStation
 	rowShow
+	rowItem
 )
 
 type row struct {
@@ -32,6 +33,7 @@ type row struct {
 	title    string
 	subtitle string
 	page     string
+	meta     map[string]any
 	track    Track
 }
 
@@ -49,6 +51,7 @@ type host struct {
 
 	plugins []*plugin.Plugin
 	cur     *plugin.Plugin
+	generic bool
 	nav     []plugin.Navigation
 	navAt   int
 	gen     int
@@ -114,7 +117,8 @@ func abs(p string) string {
 
 func (h *host) selectPlugin(i int) {
 	h.cur = h.plugins[i]
-	h.nav = h.cur.Manifest().Navigation
+	h.generic = h.cur.Manifest().Contributes != nil && len(h.cur.Manifest().Contributes.Pages) > 0
+	h.nav = h.cur.Manifest().Pages()
 	if len(h.nav) == 0 {
 		h.nav = []plugin.Navigation{{Title: "Home", Builtin: "home"}}
 	}
@@ -155,6 +159,13 @@ func (h *host) openNav(i int) {
 }
 
 func (h *host) load(n plugin.Navigation) (string, string, []row, error) {
+	if h.generic {
+		page, err := h.cur.Page(n.Page)
+		if err != nil {
+			return "", "", nil, err
+		}
+		return page.Title, page.Subtitle, genericRows(page), nil
+	}
 	if n.Page != "" {
 		var page Page
 		if err := h.cur.Call("browse", map[string]string{"page": n.Page}, &page); err != nil {
@@ -193,7 +204,7 @@ func (h *host) load(n plugin.Navigation) (string, string, []row, error) {
 
 func (h *host) search() {
 	q := strings.TrimSpace(h.query)
-	if q == "" || h.cur == nil || h.needsConsent() {
+	if h.generic || q == "" || h.cur == nil || h.needsConsent() {
 		return
 	}
 	h.gen++
@@ -268,6 +279,20 @@ func (h *host) activate(i int) {
 		}
 	case rowStation:
 		h.openStation(r.id)
+	case rowItem:
+		if page, ok := r.meta["page"].(string); ok && page != "" {
+			for j, n := range h.nav {
+				if n.Page == page {
+					h.openNav(j)
+					return
+				}
+			}
+			h.nav = append(h.nav, plugin.Navigation{Title: r.title, Page: page})
+			h.openNav(len(h.nav) - 1)
+			return
+		}
+		h.notice = r.title + " — " + r.subtitle
+		h.win.Invalidate()
 	}
 }
 
@@ -351,6 +376,25 @@ func navTitle(n plugin.Navigation) string {
 		return strings.ToUpper(n.Builtin[:1]) + n.Builtin[1:]
 	}
 	return n.Page
+}
+
+func genericRows(page *plugin.Page) []row {
+	var out []row
+	for _, s := range page.Sections {
+		if s.Title != "" {
+			out = append(out, row{kind: rowHeader, title: s.Title})
+		}
+		for _, item := range s.Items {
+			out = append(out, row{
+				kind:     rowItem,
+				id:       item.ID,
+				title:    item.Title,
+				subtitle: item.Subtitle,
+				meta:     item.Meta,
+			})
+		}
+	}
+	return out
 }
 
 func rowsOf(page Page) []row {

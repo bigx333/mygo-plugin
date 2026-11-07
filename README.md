@@ -27,6 +27,7 @@ MyGo Music has a complete third-party plugin runtime, but it lives in `internal/
 - A registry of the public `mygo-music-plugin` topic, rebuilt weekly, with a health check that compiles each module and records its exports
 - A static store page generated from the registry
 - TypeScript declarations for the host global and a `plugintest` package for plugin authors
+- A generic host-rendered page contract: `contributes.pages` and `page({ id })`, not only MyGo Music sources
 - An experimental host-rendered page schema for plugin pages
 - `mygo-plugin` CLI: `check`, `pack`, `new`, `list`, `index`, `install`, `site`, `dev`
 - Manifest JSON Schema: `spec/plugin.schema.json`
@@ -161,7 +162,19 @@ mygo-plugin install -version 0.2.1 -sha256 <hex> owner/repo /path/to/plugins --y
 
 ## Native pages (experimental)
 
-A plugin may answer `browse` with a host-rendered page: a title, sections and items, with no view tree, HTML or CSS. `plugin.Browse(page)` decodes it into `Page`, `Section` and `Item`; [`spec/page.schema.json`](spec/page.schema.json) describes the JSON and [`docs/native-ui.md`](docs/native-ui.md) explains what the host owns. MyGo Music's richer sections (tracks, playlists, shows) are adapted by the host; this shape is a smaller, generic subset and may change.
+A plugin may answer with a host-rendered page: a title, sections and items, with no view tree, HTML or CSS. `plugin.Page(id)` calls the plugin's `page` export, or falls back to `browse` for MyGo Music's plugins, and decodes it into `Page`, `Section` and `Item`.
+
+A plugin that isn't a music source declares where its pages appear:
+
+```json
+{
+  "contributes": {
+    "pages": [{"id": "home", "title": "Home", "icon": "home"}]
+  }
+}
+```
+
+and exports `page({ id })`. `plugin.Manifest.Pages()` returns these entries, or MyGo Music's `navigation` when there are none. The host draws both with its own components; MyGo Music's richer sections (tracks, playlists, shows) are adapted by the host. [`spec/page.schema.json`](spec/page.schema.json) describes the JSON and [`docs/native-ui.md`](docs/native-ui.md) explains what the host owns. This shape is experimental and may change.
 
 Signatures, a registry index and installing straight from a GitHub release are not done yet; see the roadmap. Don't build a review backend for v0.1.
 

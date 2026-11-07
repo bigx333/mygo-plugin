@@ -14,6 +14,13 @@ go run . -plugins ../../plugins
 Or point it at a plugin folder with `-plugins /path/to/plugins`, and keep its
 plugin data somewhere with `-data /path/to/data`.
 
+## Generic and music plugins
+
+A plugin with `contributes.pages` and a `page({ id })` export is drawn as a
+generic page: sections and items, no music types. A MyGo Music plugin declares
+`navigation` and `browse`; this host adapts its tracks and playlists. The host
+test in `host_test.go` loads `testdata/generic` through the first path.
+
 ## What it does
 
 - A sidebar from `plugin.json`'s `navigation`: `page` entries call `browse`;
@@ -31,6 +38,13 @@ plugin data somewhere with `-data /path/to/data`.
 The track, playlist and section types in `contract.go` are this app's reading
 of MyGo Music's source contract, not part of `mygo-plugin`. Another host with
 another kind of plugin defines its own.
+
+## Generic and music plugins
+
+A plugin with `contributes.pages` and a `page({ id })` export is drawn as a
+generic page: sections and items, no music types. A MyGo Music plugin declares
+`navigation` and `browse`; this host adapts its tracks and playlists. The host
+test in `host_test.go` loads `testdata/generic` through the first path.
 
 ## What it doesn't do
 

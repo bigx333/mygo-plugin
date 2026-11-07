@@ -1,0 +1,12 @@
+{
+  "id": "generic",
+  "name": "Generic",
+  "version": "0.1.0",
+  "main": "index.js",
+  "permissions": {},
+  "contributes": {
+    "pages": [
+      {"id": "home", "title": "Home", "icon": "home"}
+    ]
+  }
+}

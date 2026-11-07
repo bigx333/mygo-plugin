@@ -2,6 +2,13 @@
 
 mygo-plugin follows Semantic Versioning. Before 1.0, a minor version adds features and may change the API; a patch version fixes bugs. Releases are cut at milestones, not per change; see [RELEASING.md](RELEASING.md). The manifest and the host API freeze at 1.0.
 
+## Unreleased
+
+### Added
+
+- `contributes.pages` and `Plugin.Page`: a plugin can add native pages without MyGo Music's navigation or source contract. `Manifest.Pages()` reads either.
+- The reference host renders generic pages; MyGo Music's tracks and playlists are one adapter, not the shape of every plugin.
+
 ## 0.6.0
 
 ### Added

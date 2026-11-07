@@ -77,8 +77,10 @@ func (h *host) header(c *ui.Context) {
 				ui.Text(c, h.subtitle).FontSize(11).TextColor(t.TextMuted).SingleLine()
 			}
 		})
-		if ui.TextInput(c, &h.query).Width(280).Placeholder("Search tracks").Submitted() {
-			h.search()
+		if !h.generic {
+			if ui.TextInput(c, &h.query).Width(280).Placeholder("Search tracks").Submitted() {
+				h.search()
+			}
 		}
 	})
 }

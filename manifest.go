@@ -38,10 +38,42 @@ type Manifest struct {
 	MinAppVersion string `json:"minAppVersion,omitempty"`
 	// Playback tells the host how the plugin plays: "stream" when it answers
 	// a URL the host fetches and plays itself, as MyGo Music's sources do.
-	Playback    string       `json:"playback,omitempty"`
-	Permissions Permissions  `json:"permissions"`
-	Settings    []Setting    `json:"settings,omitempty"`
-	Navigation  []Navigation `json:"navigation,omitempty"`
+	Playback    string      `json:"playback,omitempty"`
+	Permissions Permissions `json:"permissions"`
+	Settings    []Setting   `json:"settings,omitempty"`
+	// Navigation is MyGo Music's sidebar shape; Contributes is the generic
+	// one. A plugin may use either, and a host reads Pages.
+	Navigation  []Navigation   `json:"navigation,omitempty"`
+	Contributes *Contributions `json:"contributes,omitempty"`
+}
+
+// Contributions are what a plugin adds to a host that doesn't know its kind.
+type Contributions struct {
+	Pages []PageContribution `json:"pages,omitempty"`
+}
+
+// PageContribution is one page a plugin draws through the host.
+type PageContribution struct {
+	ID    string `json:"id"`
+	Title string `json:"title,omitempty"`
+	Icon  string `json:"icon,omitempty"`
+}
+
+// Pages is what the host's sidebar shows: the generic contributions when a
+// plugin has them, and MyGo Music's navigation otherwise.
+func (m Manifest) Pages() []Navigation {
+	if m.Contributes == nil || len(m.Contributes.Pages) == 0 {
+		return m.Navigation
+	}
+	out := make([]Navigation, 0, len(m.Contributes.Pages))
+	for _, p := range m.Contributes.Pages {
+		title := p.Title
+		if title == "" {
+			title = p.ID
+		}
+		out = append(out, Navigation{Title: title, Page: p.ID, Icon: p.Icon})
+	}
+	return out
 }
 
 // Permissions are what a plugin asks for beyond its own folder and data.
@@ -196,6 +228,13 @@ func (m *Manifest) Validate() error {
 	for i, s := range m.Settings {
 		if s.Key == "" {
 			return fmt.Errorf("settings[%d] needs a key", i)
+		}
+	}
+	if m.Contributes != nil {
+		for i, p := range m.Contributes.Pages {
+			if p.ID == "" || !idPattern.MatchString(p.ID) {
+				return fmt.Errorf("contributes.pages[%d] needs an id of letters, digits, dots, underscores and hyphens", i)
+			}
 		}
 	}
 	return nil

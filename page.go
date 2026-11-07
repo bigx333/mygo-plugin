@@ -30,6 +30,20 @@ type Item struct {
 	Meta map[string]any `json:"meta,omitempty"`
 }
 
+// Page asks a plugin for one of its contributed pages. A plugin that exports
+// page answers it; one that only exports browse, as MyGo Music's do, is asked
+// through Browse.
+func (p *Plugin) Page(id string) (*Page, error) {
+	if p.Can("page") {
+		var out Page
+		if err := p.Call("page", map[string]string{"id": id}, &out); err != nil {
+			return nil, err
+		}
+		return &out, nil
+	}
+	return p.Browse(id)
+}
+
 // Browse asks a plugin for the page named by a navigation entry's page, and
 // decodes it as a Page. A plugin that doesn't export browse is ErrUnsupported.
 //

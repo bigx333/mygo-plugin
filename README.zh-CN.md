@@ -27,6 +27,7 @@ MyGo Music 有一套完整的第三方插件运行时，但它在 `internal/plug
 - 公开的 `mygo-music-plugin` topic 注册表，每周重建；`index` 会编译模块、记录导出，不执行
 - 从注册表生成的静态商店页
 - 宿主全局的 TypeScript 声明，以及给插件作者的 `plugintest` 包
+- 通用宿主渲染页面契约：`contributes.pages` 与 `page({ id })`，不只是 MyGo Music 音源
 - 实验性的宿主渲染页面 schema
 - `mygo-plugin` CLI：`check`、`pack`、`new`、`list`、`index`、`install`、`site`、`dev`
 - manifest JSON Schema：`spec/plugin.schema.json`
@@ -161,7 +162,19 @@ mygo-plugin install -version 0.2.1 -sha256 <hex> owner/repo /path/to/plugins --y
 
 ## 原生页面（实验）
 
-插件可以让 `browse` 返回宿主渲染的页面：标题、分区和条目，没有视图树、HTML 或 CSS。`plugin.Browse(page)` 解码成 `Page`、`Section`、`Item`；[`spec/page.schema.json`](spec/page.schema.json) 描述 JSON，[`docs/native-ui.md`](docs/native-ui.md) 说明宿主负责什么。MyGo Music 更丰富的 sections（歌曲、歌单、播客）由宿主适配；这里是更小的通用子集，可能变化。
+插件可以返回宿主渲染的页面：标题、分区和条目，没有视图树、HTML 或 CSS。`plugin.Page(id)` 调插件的 `page` 导出；MyGo Music 插件没有它时回退到 `browse`，再解码成 `Page`、`Section`、`Item`。
+
+不是音源的插件声明页面挂在哪：
+
+```json
+{
+  "contributes": {
+    "pages": [{"id": "home", "title": "Home", "icon": "home"}]
+  }
+}
+```
+
+并导出 `page({ id })`。`plugin.Manifest.Pages()` 返回这些入口；没有时返回 MyGo Music 的 `navigation`。宿主用原生组件画两者；MyGo Music 更丰富的 sections（歌曲、歌单、播客）由宿主适配。[`spec/page.schema.json`](spec/page.schema.json) 描述 JSON，[`docs/native-ui.md`](docs/native-ui.md) 说明宿主负责什么。这个形状仍是实验性的。
 
 签名、registry 索引、从 GitHub release 直接安装还没做；见路线图。别在 v0.1 就自建审核后台。
 
