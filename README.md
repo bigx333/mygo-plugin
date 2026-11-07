@@ -197,15 +197,11 @@ MYGO_PLUGIN_REAL=../mygo-music-netease MYGO_PLUGIN_NETWORK=1 go test -run TestRe
 
 ## Roadmap
 
-- Deeplinks for installs
-- Ed25519 signatures and install verification
-- A real implementation of the process permission (allowlist plus a grant UI)
-- Generate app-specific host types from a Go contract
-- A standard icon name table with cross-platform fallbacks
+The full research and plan are in [docs/roadmap.md](docs/roadmap.md). The next milestone is **Contract v2**: generic pages, commands, settings and capability negotiation, with MyGo Music as one adapter rather than the model. Later: durable grants, signatures, process permission, generated host types, and two real host apps.
 
 ## Reference host
 
-[`examples/host`](examples/host) is a small native MyGo app that runs plugins with this module: a sidebar from `navigation`, `browse` and `search` rendered as native rows, a network consent card, and playback that downloads the stream in Go. It is the shape to copy for an app that hosts plugins, not a product.
+[`examples/host`](examples/host) is a small native MyGo app that runs plugins with this module: generic pages from `contributes.pages`, MyGo Music's `navigation` and `browse`, a network consent card, and playback that downloads the stream in Go. It is the shape to copy for an app that hosts plugins, not a product.
 
 ## Versioning
 
