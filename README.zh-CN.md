@@ -108,6 +108,22 @@ MyGo 已经区分可信页面和不可信页面：需要 HTML 的插件 UI 可�
 - allowlist 在每次请求（含重定向）时检查
 - `process` 是声明，不是自动授权
 
+## 注册表
+
+`registry.json` 收录 `mygo-music-plugin` topic 下的插件，按插件 id 去重：目前 27 个仓库得到 23 个插件。重新生成：
+
+```sh
+GITHUB_TOKEN=... mygo-plugin index -o registry.json
+```
+
+安装其中一个：
+
+```sh
+mygo-plugin install owner/repo /path/to/plugins
+```
+
+两个仓库用同一个 id 时，版本新的优先，版本相同则仓库名排序靠前的优先。安装插件是一次信任决定：运行前先看 manifest 的权限。注册表也会由 GitHub Actions 每周刷新。
+
 ## 安装与分发
 
 ```go
@@ -145,10 +161,9 @@ MYGO_PLUGIN_REAL=../mygo-music-netease MYGO_PLUGIN_NETWORK=1 go test -run TestRe
 
 ## 路线图
 
-- 从 GitHub release / topic 安装，deeplink
+- 安装 deeplink
 - Ed25519 签名与安装校验
 - 进程权限的真实实现（allowlist + 授权 UI）
-- 静态 registry index（GitHub 即源，CI 生成 JSON）
 - 从宿主 Go 契约生成 `host.d.ts`，加 mock host 测试包
 - 标准图标名表与跨平台回退
 

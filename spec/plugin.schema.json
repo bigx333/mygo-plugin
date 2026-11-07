@@ -70,10 +70,9 @@
       "type": "array",
       "items": {
         "type": "object",
-        "required": ["title"],
         "anyOf": [{ "required": ["page"] }, { "required": ["builtin"] }],
         "properties": {
-          "title": { "type": "string" },
+          "title": { "type": "string", "description": "Required for a page; a builtin page has the host's own name." },
           "page": { "type": "string", "description": "Asked of the plugin's browse export." },
           "builtin": { "type": "string", "description": "A page the host draws itself." },
           "icon": { "type": "string", "description": "A name in the host's icon set, not a file." }

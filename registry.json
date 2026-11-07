@@ -1,0 +1,407 @@
+{
+  "schema": 1,
+  "generatedAt": "2026-11-07T05:26:06Z",
+  "entries": [
+    {
+      "id": "ampache",
+      "name": "Ampache",
+      "version": "0.1.0",
+      "repo": "benhaotang/mygo-music-Ampache",
+      "main": "index.js",
+      "minAppVersion": "0.1.8",
+      "permissions": {
+        "network": [
+          "*"
+        ]
+      }
+    },
+    {
+      "id": "apple-music",
+      "name": "Apple Music",
+      "version": "0.1.4",
+      "repo": "InkCitrus/mygo-music-apple-music",
+      "main": "dist/index.js",
+      "minAppVersion": "0.1.8",
+      "permissions": {
+        "network": [
+          "amp-api.music.apple.com",
+          "amp-api-edge.music.apple.com",
+          "music.apple.com",
+          "beta.music.apple.com",
+          "*.music.apple.com",
+          "play.itunes.apple.com",
+          "itunes.apple.com",
+          "audio-ssl.itunes.apple.com",
+          "*.itunes.apple.com",
+          "*.mzstatic.com",
+          "lrclib.net"
+        ],
+        "process": [
+          "/usr/bin/osascript",
+          "osascript"
+        ]
+      }
+    },
+    {
+      "id": "bilibili",
+      "name": "Bilibili",
+      "version": "0.2.0",
+      "repo": "GentleM4dman/mygo-music-bilibili",
+      "main": "index.js",
+      "minAppVersion": "0.1.8",
+      "permissions": {
+        "network": [
+          "api.bilibili.com",
+          "passport.bilibili.com",
+          "s.search.bilibili.com",
+          "b23.tv",
+          "*.hdslb.com",
+          "aisubtitle.hdslb.com"
+        ],
+        "process": [
+          "ffmpeg",
+          "/opt/homebrew/bin/ffmpeg",
+          "/usr/local/bin/ffmpeg"
+        ]
+      }
+    },
+    {
+      "id": "bodian",
+      "name": "Bodian Music",
+      "version": "0.1.0",
+      "repo": "amqsy/mygo-music-bodian",
+      "main": "index.js",
+      "minAppVersion": "0.1.16",
+      "permissions": {
+        "network": [
+          "bd-api.kuwo.cn",
+          "mlyric.kuwo.cn"
+        ]
+      }
+    },
+    {
+      "id": "download-music",
+      "name": "Music Download",
+      "version": "0.1.0",
+      "repo": "yunforge/mygo-music-download",
+      "main": "index.js",
+      "minAppVersion": "0.1.8",
+      "permissions": {
+        "network": [
+          "flac.music.hi.cn",
+          "*.music.126.net",
+          "*.126.net",
+          "music.163.com",
+          "*.kuwo.cn",
+          "kuwo.cn",
+          "www.kuwo.cn",
+          "api.bilibili.com",
+          "www.bilibili.com",
+          "*.bilibili.com",
+          "*.hdslb.com",
+          "*.bilivideo.com",
+          "*.bilivideo.cn",
+          "*.szbdyd.com",
+          "*.biliapi.net"
+        ]
+      }
+    },
+    {
+      "id": "fnos-music",
+      "name": "fnOS Music",
+      "version": "1.1.2",
+      "repo": "yusgsysh/mygo-music-fnos-plugin",
+      "main": "index.js",
+      "minAppVersion": "0.1.8",
+      "permissions": {
+        "network": [
+          "*"
+        ]
+      }
+    },
+    {
+      "id": "kugou",
+      "name": "酷狗",
+      "version": "1.0.0",
+      "repo": "fcmfcm1999/mygo-music-kugou",
+      "main": "index.js",
+      "permissions": {
+        "network": [
+          "gateway.kugou.com",
+          "lyrics.kugou.com",
+          "krcs.kugou.com",
+          "login-user.kugou.com",
+          "expendablekmr.kugou.com",
+          "openapi.kugou.com"
+        ]
+      }
+    },
+    {
+      "id": "kugou-lite",
+      "name": "Kugou Concept",
+      "version": "1.3.0",
+      "repo": "bitbyte404/mygo-music-kugou-lite",
+      "main": "index.js",
+      "minAppVersion": "0.1.8",
+      "permissions": {
+        "network": [
+          "gateway.kugou.com",
+          "openapi.kugou.com",
+          "login-user.kugou.com",
+          "lyrics.kugou.com",
+          "krcs.kugou.com",
+          "kugouvip.kugou.com",
+          "userservice.kugou.com",
+          "mcloudservice.kugou.com"
+        ]
+      }
+    },
+    {
+      "id": "lizhi",
+      "name": "Li Zhi",
+      "version": "1.1.0",
+      "repo": "djyde/mygo-lizhi",
+      "main": "index.js",
+      "minAppVersion": "0.1.8",
+      "permissions": {
+        "network": [
+          "api.github.com",
+          "testingcf.jsdelivr.net",
+          "cdn.jsdelivr.net",
+          "raw.githubusercontent.com",
+          "lrclib.net"
+        ]
+      }
+    },
+    {
+      "id": "mygo-queyue",
+      "name": "QueYue",
+      "version": "0.1.0",
+      "repo": "popeyelau/mygo-queyue",
+      "main": "index.js",
+      "minAppVersion": "0.1.8",
+      "permissions": {
+        "network": [
+          "api.indie.cn",
+          "www.indie.cn",
+          "cdn2.indie.cn",
+          "music.163.com"
+        ]
+      }
+    },
+    {
+      "id": "mygotify",
+      "name": "MyGotify",
+      "version": "0.1.0",
+      "repo": "r0k1s-i/mygotify",
+      "main": "index.js",
+      "minAppVersion": "0.1.8",
+      "permissions": {
+        "network": [
+          "open.spotify.com",
+          "api-partner.spotify.com",
+          "spclient.wg.spotify.com",
+          "clienttoken.spotify.com",
+          "gist.githubusercontent.com",
+          "music.youtube.com",
+          "lrclib.net",
+          "music.163.com"
+        ],
+        "process": [
+          "ffmpeg",
+          "yt-dlp",
+          "/opt/homebrew/bin/ffmpeg",
+          "/opt/homebrew/bin/yt-dlp",
+          "/usr/local/bin/ffmpeg",
+          "/usr/local/bin/yt-dlp"
+        ]
+      }
+    },
+    {
+      "id": "netease",
+      "name": "网易云音乐",
+      "version": "1.0.14",
+      "repo": "AsperaUlt/mygo-netease",
+      "main": "index.js",
+      "permissions": {
+        "network": [
+          "music.163.com",
+          "interface.music.163.com"
+        ]
+      }
+    },
+    {
+      "id": "netease-cloud-music",
+      "name": "NetEase Cloud Music",
+      "version": "0.1.8",
+      "repo": "AkinoKaede/mygo-music-netease-cloud-music",
+      "main": "index.js",
+      "minAppVersion": "0.1.19",
+      "permissions": {
+        "network": [
+          "music.163.com",
+          "interfacepc.music.163.com"
+        ]
+      }
+    },
+    {
+      "id": "netease-cloud-music-plus",
+      "name": "NetEase Cloud Music Plus",
+      "version": "0.2.1",
+      "repo": "Arteiimis/mygo-music-netease",
+      "main": "index.js",
+      "minAppVersion": "0.1.8",
+      "permissions": {
+        "network": [
+          "music.163.com",
+          "interfacepc.music.163.com"
+        ]
+      }
+    },
+    {
+      "id": "netease-haruhikage",
+      "name": "网易云音乐 · 春日影",
+      "version": "0.2.1",
+      "repo": "yxxbc/netease-haruhikage",
+      "main": "index.js",
+      "minAppVersion": "0.1.8",
+      "permissions": {
+        "network": [
+          "music.163.com",
+          "interfacepc.music.163.com"
+        ]
+      }
+    },
+    {
+      "id": "netease-music",
+      "name": "网易云音乐",
+      "version": "0.4.0",
+      "repo": "SixWa12138/mygo-music-netease-music",
+      "main": "index.js",
+      "permissions": {
+        "network": [
+          "music.163.com",
+          "interfacepc.music.163.com",
+          "*.127.net"
+        ]
+      }
+    },
+    {
+      "id": "qishui",
+      "name": "汽水音乐",
+      "version": "0.4.5",
+      "repo": "DaviRain-Su/mygo-music-qishui",
+      "main": "index.js",
+      "minAppVersion": "0.1.7",
+      "permissions": {
+        "network": [
+          "api.qishui.com",
+          "api5-lq.qishui.com",
+          "*.qishui.com"
+        ],
+        "process": [
+          "node",
+          "/opt/homebrew/bin/node",
+          "/usr/local/bin/node",
+          "ffmpeg",
+          "/opt/homebrew/bin/ffmpeg",
+          "/usr/local/bin/ffmpeg"
+        ]
+      }
+    },
+    {
+      "id": "qishui-app-login",
+      "name": "汽水音乐",
+      "version": "1.0.5",
+      "repo": "lane128/mygo-music-qishui",
+      "main": "index.js",
+      "minAppVersion": "0.1.8",
+      "permissions": {
+        "process": [
+          "bin/node-*"
+        ]
+      }
+    },
+    {
+      "id": "qqmusic",
+      "name": "QQ Music",
+      "version": "0.2.4",
+      "repo": "dddaniel1/mygo-plugin-qqmusic",
+      "main": "index.js",
+      "minAppVersion": "0.1.8",
+      "permissions": {
+        "network": [
+          "*.qq.com",
+          "*.gtimg.cn"
+        ]
+      }
+    },
+    {
+      "id": "spotify",
+      "name": "Spotify",
+      "version": "0.1.0",
+      "repo": "xingkaixin/mygo-music-spotify",
+      "main": "index.js",
+      "permissions": {
+        "network": [
+          "api.spotify.com",
+          "accounts.spotify.com",
+          "lrclib.net"
+        ],
+        "process": [
+          "/opt/homebrew/bin/librespot",
+          "/usr/local/bin/librespot"
+        ]
+      }
+    },
+    {
+      "id": "subsonic",
+      "name": "Subsonic",
+      "version": "0.1.2",
+      "repo": "TexasOct/mygo-subsonic",
+      "main": "index.js",
+      "minAppVersion": "0.1.13",
+      "permissions": {
+        "network": [
+          "*"
+        ]
+      }
+    },
+    {
+      "id": "youtube-music",
+      "name": "YouTube Music",
+      "version": "0.1.1",
+      "repo": "egoist/mygo-music-youtube-music",
+      "main": "index.js",
+      "minAppVersion": "0.1.8",
+      "permissions": {
+        "network": [
+          "music.youtube.com",
+          "s.youtube.com",
+          "api.betterlyrics.org"
+        ],
+        "process": [
+          "ffmpeg",
+          "yt-dlp",
+          "/opt/homebrew/bin/ffmpeg",
+          "/opt/homebrew/bin/yt-dlp",
+          "/usr/local/bin/ffmpeg",
+          "/usr/local/bin/yt-dlp"
+        ]
+      }
+    },
+    {
+      "id": "yun-music",
+      "name": "YunLu Music",
+      "version": "1.1.0",
+      "repo": "biaobiaobiao108/mygo-yun-music",
+      "main": "index.js",
+      "minAppVersion": "0.1.8",
+      "permissions": {
+        "network": [
+          "*"
+        ]
+      }
+    }
+  ]
+}

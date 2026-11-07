@@ -2,6 +2,7 @@
 package main
 
 import (
+	"context"
 	"flag"
 	"fmt"
 	"os"
@@ -25,6 +26,10 @@ func main() {
 		create(os.Args[2:])
 	case "list":
 		list(os.Args[2:])
+	case "index":
+		index(os.Args[2:])
+	case "install":
+		install(os.Args[2:])
 	case "help", "-h", "--help":
 		usage()
 	default:
@@ -40,6 +45,9 @@ func usage() {
   mygo-plugin pack [dir] [-o f]  write a zip with plugin.json at its root
   mygo-plugin new <id>           start a plugin in a new folder
   mygo-plugin list <plugins>     list the plugins installed in a folder
+  mygo-plugin index [repo...]     collect plugin.json files into a registry
+  mygo-plugin install <repo> <plugins>
+                                  install a plugin from GitHub
 
 check takes -app-version to enforce minAppVersion.
 `)
@@ -70,11 +78,11 @@ func check(args []string) {
 		fmt.Printf("process: %s\n", strings.Join(m.Permissions.Process, ", "))
 	}
 	for _, n := range m.Navigation {
-		what := n.Page
+		what, title := n.Page, n.Title
 		if n.Builtin != "" {
-			what = "builtin:" + n.Builtin
+			what, title = "builtin:"+n.Builtin, n.Builtin
 		}
-		fmt.Printf("navigation: %s (%s)\n", n.Title, what)
+		fmt.Printf("navigation: %s (%s)\n", title, what)
 	}
 	fmt.Printf("exports: %s\n", strings.Join(exports, ", "))
 	if len(exports) == 0 {
@@ -173,6 +181,51 @@ func list(args []string) {
 	for _, m := range manifests {
 		fmt.Printf("%s\t%s\t%s\n", m.ID, m.Version, m.Name)
 	}
+}
+
+func index(args []string) {
+	fs := flag.NewFlagSet("index", flag.ExitOnError)
+	topic := fs.String("topic", "mygo-music-plugin", "the GitHub topic to collect")
+	out := fs.String("o", "registry.json", "the registry to write")
+	token := fs.String("token", os.Getenv("GITHUB_TOKEN"), "a GitHub token, for the rate limit")
+	fs.Parse(args)
+	ctx := context.Background()
+	g := &plugin.GitHub{Token: *token}
+	repos := fs.Args()
+	if len(repos) == 0 {
+		var err error
+		repos, err = g.Repos(ctx, *topic)
+		if err != nil {
+			fail(err)
+		}
+	}
+	registry, failures := plugin.BuildRegistry(ctx, g, repos)
+	if err := registry.WriteFile(*out); err != nil {
+		fail(err)
+	}
+	var failed []string
+	for repo := range failures {
+		failed = append(failed, repo)
+	}
+	sort.Strings(failed)
+	for _, repo := range failed {
+		fmt.Fprintf(os.Stderr, "skip %s: %v\n", repo, failures[repo])
+	}
+	fmt.Printf("%s: %d plugins, %d repositories, %d skipped\n", *out, len(registry.Entries), len(repos), len(failures))
+}
+
+func install(args []string) {
+	fs := flag.NewFlagSet("install", flag.ExitOnError)
+	token := fs.String("token", os.Getenv("GITHUB_TOKEN"), "a GitHub token, for the rate limit")
+	fs.Parse(args)
+	if fs.NArg() != 2 {
+		usage()
+	}
+	m, err := (&plugin.GitHub{Token: *token}).Install(context.Background(), fs.Arg(0), fs.Arg(1))
+	if err != nil {
+		fail(err)
+	}
+	fmt.Printf("%s %s (%s)\n", m.Name, m.Version, m.ID)
 }
 
 func fail(err error) {

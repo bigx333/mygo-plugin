@@ -115,13 +115,24 @@ var (
 // ReadManifest reads the plugin.json in dir, fills in what it leaves out, and
 // checks it.
 func ReadManifest(dir string) (*Manifest, error) {
-	b, err := os.ReadFile(filepath.Join(dir, "plugin.json"))
+	path := filepath.Join(dir, "plugin.json")
+	b, err := os.ReadFile(path)
 	if err != nil {
 		return nil, err
 	}
+	m, err := ParseManifest(b)
+	if err != nil {
+		return nil, fmt.Errorf("%s: %w", path, err)
+	}
+	return m, nil
+}
+
+// ParseManifest reads a plugin.json, fills in what it leaves out, and checks
+// it.
+func ParseManifest(b []byte) (*Manifest, error) {
 	var m Manifest
 	if err := json.Unmarshal(b, &m); err != nil {
-		return nil, fmt.Errorf("%s: %w", filepath.Join(dir, "plugin.json"), err)
+		return nil, err
 	}
 	m.normalize()
 	if err := m.Validate(); err != nil {
@@ -173,11 +184,13 @@ func (m *Manifest) Validate() error {
 		}
 	}
 	for i, n := range m.Navigation {
-		if n.Title == "" {
-			return fmt.Errorf("navigation[%d] needs a title", i)
-		}
 		if n.Page == "" && n.Builtin == "" {
 			return fmt.Errorf("navigation[%d] %q needs a page or a builtin", i, n.Title)
+		}
+		// The host names its own pages, so a builtin needs no title; a page
+		// of the plugin's does.
+		if n.Title == "" && n.Page != "" {
+			return fmt.Errorf("navigation[%d] needs a title", i)
 		}
 	}
 	for i, s := range m.Settings {
