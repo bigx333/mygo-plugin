@@ -66,6 +66,8 @@ A plugin cannot touch the host's UI tree. The host builds its sidebar from `plug
 
 The playback **data plane stays in Go**: a plugin's `stream` returns only `{ url, headers, type }`; the host downloads, decodes and plays it, so audio bytes never cross into JavaScript. Lyrics work the same way: the plugin returns text, the host lays it out.
 
+MyGo treats pages of a custom scheme as the app's own, so they may call Go methods ([issue #729](https://github.com/egoist/mygo/issues/729)). A plugin UI in a WebView would inherit that trust, or need a mode MyGo does not have. This host sidesteps it: a plugin has no page, no bridge and no DOM; it sees only the host functions its manifest declares.
+
 That is where the performance comes from. moejs calls take microseconds, but the real saving is not putting audio, covers and lyrics through JSON. Keep calls coarse; don't build a universal RPC.
 
 Icons are names in the host's icon set (`calendar`, `star`, `playlist`, ...), not files. On macOS a host can draw Apple's SF Symbols with `plugins/sfsymbols`; other platforms use their own fallback set. Plugins should not ship SVG, or every host has to deal with rasterization and design consistency.

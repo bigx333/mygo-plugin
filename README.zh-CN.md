@@ -66,6 +66,8 @@ err = p.Call("search", map[string]any{"query": "周杰伦", "kind": "tracks", "o
 
 播放的**数据面留在 Go**：插件 `stream` 只返回 `{ url, headers, type }`，宿主自己下载、解码、播放，音频字节不经过 JS。歌词同理，插件返回文本，宿主排版。
 
+MyGo 把自定义 scheme 的页面当作应用自己的页面，可以调用 Go 方法（[issue #729](https://github.com/egoist/mygo/issues/729)）。插件 UI 放进 WebView 就会继承这份信任，或者需要一个 MyGo 还没有的模式。这个宿主绕开了它：插件没有页面、没有 bridge、没有 DOM，只能看到 manifest 声明过的宿主函数。
+
 这就是性能的关键：moejs 的调用是微秒级，但真正的省是在于不把音频、封面、歌词塞进运行时的 JSON。保持调用粗粒度，别做万能 RPC。
 
 图标不是文件，是宿主图标集里的名字（`calendar`、`star`、`playlist`…）。macOS 上宿主可以用 `plugins/sfsymbols` 画系统 SF Symbols，其他平台用自己的回退集。插件不该带 SVG，否则每个宿主都要处理栅格化和设计一致性。
