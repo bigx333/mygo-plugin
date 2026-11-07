@@ -126,7 +126,7 @@ When two repositories share an id, the newer version wins, then the repository t
 
 Each entry also carries trust signals when GitHub answers: stars, the last push, the license, and whether the repository is archived. Only public repositories are crawled.
 
-`mygo-plugin site` writes the same registry as a [static page](docs/index.html), with the permissions, health, trust signals and install command of each plugin. It needs no server and no JavaScript.
+`mygo-plugin site` writes the same registry as a [static page](https://yxxbc.github.io/mygo-plugin/), with the permissions, health, trust signals and install command of each plugin. It needs no server and no JavaScript.
 
 ## Installing and distributing
 
