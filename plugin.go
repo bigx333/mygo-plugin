@@ -94,9 +94,10 @@ type Plugin struct {
 	exports  map[string]bool
 	opts     Options
 
-	mu      sync.Mutex
-	storage map[string]json.RawMessage
+	mu      sync.Mutex // guards vm
 	vm      *vm
+	smu     sync.Mutex // guards storage, which module evaluation may read
+	storage map[string]json.RawMessage
 }
 
 // Load reads and compiles the plugin in dir, without running it.

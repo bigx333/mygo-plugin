@@ -5,6 +5,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"net/http"
 	"net/http/httptest"
 	"os"
@@ -345,4 +346,37 @@ func TestRealSearch(t *testing.T) {
 		t.Fatal("search returned no tracks")
 	}
 	t.Logf("%d tracks, first: %s", len(out.Tracks), out.Tracks[0].Name)
+}
+
+func TestTopLevelStorage(t *testing.T) {
+	p, err := Load("testdata/toplevel", Options{DataDir: t.TempDir(), CallTimeout: 5 * time.Second})
+	if err != nil {
+		t.Fatal(err)
+	}
+	type result struct {
+		Title string `json:"title"`
+	}
+	done := make(chan error, 1)
+	go func() {
+		var out result
+		if err := p.Call("home", nil, &out); err != nil {
+			done <- err
+			return
+		}
+		if out.Title != "OK" {
+			done <- fmt.Errorf("title = %q", out.Title)
+			return
+		}
+		done <- nil
+	}()
+	select {
+	case err := <-done:
+		p.Close()
+		if err != nil {
+			t.Fatal(err)
+		}
+	case <-time.After(5 * time.Second):
+		// No Close: the goroutine may still hold the lifecycle lock.
+		t.Fatal("module evaluation deadlocked on host.storage.get")
+	}
 }

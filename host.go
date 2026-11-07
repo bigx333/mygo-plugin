@@ -114,9 +114,9 @@ func (p *Plugin) installHost(v *vm) error {
 func (p *Plugin) storageGet(v *vm) native {
 	return func(_ *moejs.Realm, _ moejs.Value, args []moejs.Value) (moejs.Value, error) {
 		key := moejs.Arg(args, 0).String()
-		p.mu.Lock()
+		p.smu.Lock()
 		raw, ok := p.storage[key]
-		p.mu.Unlock()
+		p.smu.Unlock()
 		if !ok {
 			return moejs.Undefined(), nil
 		}
@@ -131,18 +131,18 @@ func (p *Plugin) storageSet(v *vm) native {
 			return moejs.Undefined(), err
 		}
 		key := moejs.Arg(args, 0).String()
-		p.mu.Lock()
+		p.smu.Lock()
 		p.storage[key] = raw
 		err = p.writeJSON("storage.json", p.storage)
-		p.mu.Unlock()
+		p.smu.Unlock()
 		return moejs.Undefined(), err
 	}
 }
 
 func (p *Plugin) storageRemove(_ *moejs.Realm, _ moejs.Value, args []moejs.Value) (moejs.Value, error) {
 	key := moejs.Arg(args, 0).String()
-	p.mu.Lock()
-	defer p.mu.Unlock()
+	p.smu.Lock()
+	defer p.smu.Unlock()
 	delete(p.storage, key)
 	return moejs.Undefined(), p.writeJSON("storage.json", p.storage)
 }
