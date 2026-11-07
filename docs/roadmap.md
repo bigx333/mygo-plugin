@@ -205,6 +205,9 @@ generic page contract, trust model. Version 0.6.0; next release 0.7.0.
 
 ### Phase 1 — Contract v2 (2–4 weeks)
 
+Status: the manifest fields, commands, settings types, capability negotiation,
+Page v1 and the notes plugin are in `main`; the music adapter and forms remain.
+
 Deliverables:
 
 - `contributes.pages`, `contributes.commands`, `contributes.settings` in the
@@ -219,8 +222,9 @@ Deliverables:
   refuse a plugin whose contract is unknown or too new.
 - Music adapter package: MyGo Music's `browse`/`search`/`stream` to Page/commands,
   outside the core.
-- A non-music example plugin (notes or RSS) that uses pages, commands and
-  settings.
+- A non-music example plugin (`examples/plugins/notes`) that uses pages; its
+  command is ready for a host command UI.
+- Remaining: extract the music adapter from `examples/host`; form contributions.
 
 Exit criteria: the same reference host runs the music plugin and the non-music
 plugin; both use Page v1; `go test ./...` and the host build pass.

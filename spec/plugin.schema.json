@@ -42,6 +42,22 @@
       "type": "string",
       "description": "Oldest host version that can run the plugin, such as 0.1.8."
     },
+    "contract": {
+      "type": "string",
+      "description": "The app contract the plugin implements, such as mygo-music or generic. A host that provides another one refuses it; empty is accepted by any host."
+    },
+    "contractVersion": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "The version of that contract the plugin implements. A host older than this refuses the plugin."
+    },
+    "capabilities": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "What the plugin needs from the host, such as network or clipboard; host.capability(name) says whether it is offered."
+    },
     "playback": {
       "type": "string",
       "enum": [
@@ -99,8 +115,55 @@
           "link": {
             "type": "string",
             "format": "uri"
+          },
+          "type": {
+            "type": "string",
+            "enum": [
+              "",
+              "string",
+              "password",
+              "boolean",
+              "select"
+            ],
+            "default": "",
+            "description": "The field the host draws; empty or string is a text field, password an obscured one, boolean a switch, select a pop-up menu."
+          },
+          "default": {
+            "type": "string",
+            "description": "The value before the listener sets one; \"true\" or \"false\" for a boolean."
+          },
+          "options": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "The values a select offers; required for select."
           }
-        }
+        },
+        "allOf": [
+          {
+            "if": {
+              "required": [
+                "type"
+              ],
+              "properties": {
+                "type": {
+                  "const": "select"
+                }
+              }
+            },
+            "then": {
+              "required": [
+                "options"
+              ],
+              "properties": {
+                "options": {
+                  "minItems": 1
+                }
+              }
+            }
+          }
+        ]
       }
     },
     "navigation": {
@@ -162,6 +225,28 @@
               "icon": {
                 "type": "string",
                 "description": "A name in the host's icon set."
+              }
+            }
+          }
+        },
+        "commands": {
+          "type": "array",
+          "description": "Commands the plugin runs through its command export.",
+          "items": {
+            "type": "object",
+            "required": [
+              "id"
+            ],
+            "properties": {
+              "id": {
+                "type": "string",
+                "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$"
+              },
+              "title": {
+                "type": "string"
+              },
+              "description": {
+                "type": "string"
               }
             }
           }

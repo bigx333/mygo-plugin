@@ -27,6 +27,42 @@ func TestGenericPage(t *testing.T) {
 	}
 }
 
+func TestPageV1(t *testing.T) {
+	p, err := Load("testdata/pagev1", Options{DataDir: t.TempDir()})
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer p.Close()
+	if pages := p.Manifest().Pages(); len(pages) != 1 || pages[0].Page != "detail" || pages[0].Title != "Detail" {
+		t.Fatalf("pages = %+v", pages)
+	}
+	page, err := p.Page("detail")
+	if err != nil {
+		t.Fatal(err)
+	}
+	const markdown = "Some **detail** from the plugin.\n\nIt has two paragraphs."
+	if page.Markdown != markdown {
+		t.Errorf("markdown = %q", page.Markdown)
+	}
+	if len(page.Sections) != 1 || len(page.Sections[0].Items) != 1 {
+		t.Fatalf("page = %+v", page)
+	}
+	item := page.Sections[0].Items[0]
+	if len(item.Actions) != 2 {
+		t.Fatalf("actions = %+v", item.Actions)
+	}
+	command, link := item.Actions[0], item.Actions[1]
+	if command.ID != "play" || command.Title != "Play" || command.Kind != "command" {
+		t.Errorf("command action = %+v", command)
+	}
+	if command.Meta["command"] != "play" {
+		t.Errorf("command meta = %+v", command.Meta)
+	}
+	if link.ID != "open" || link.Title != "Open" || link.Kind != "url" || link.URL != "https://example.com/one" {
+		t.Errorf("url action = %+v", link)
+	}
+}
+
 func TestPageFallsBackToBrowse(t *testing.T) {
 	p, err := Load("testdata/hello", Options{DataDir: t.TempDir()})
 	if err != nil {

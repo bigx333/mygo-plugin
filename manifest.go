@@ -36,6 +36,15 @@ type Manifest struct {
 	Main string `json:"main,omitempty"`
 	// MinAppVersion is the oldest host version that can run the plugin.
 	MinAppVersion string `json:"minAppVersion,omitempty"`
+	// Contract is the app contract the plugin implements, such as
+	// "mygo-music" or "generic". A host that provides another one refuses it;
+	// empty is accepted by any host, as MyGo Music's plugins are.
+	Contract string `json:"contract,omitempty"`
+	// ContractVersion is the version of that contract the plugin implements.
+	ContractVersion int `json:"contractVersion,omitempty"`
+	// Capabilities are what the plugin needs from the host, such as
+	// "network" or "clipboard"; host.capability answers whether it has them.
+	Capabilities []string `json:"capabilities,omitempty"`
 	// Playback tells the host how the plugin plays: "stream" when it answers
 	// a URL the host fetches and plays itself, as MyGo Music's sources do.
 	Playback    string      `json:"playback,omitempty"`
@@ -49,7 +58,25 @@ type Manifest struct {
 
 // Contributions are what a plugin adds to a host that doesn't know its kind.
 type Contributions struct {
-	Pages []PageContribution `json:"pages,omitempty"`
+	Pages    []PageContribution    `json:"pages,omitempty"`
+	Commands []CommandContribution `json:"commands,omitempty"`
+}
+
+// CommandContribution is one command a plugin runs through the host, in a
+// menu, a shortcut or a command palette the host draws.
+type CommandContribution struct {
+	ID          string `json:"id"`
+	Title       string `json:"title,omitempty"`
+	Description string `json:"description,omitempty"`
+}
+
+// Commands is what the host offers as the plugin's commands: the generic
+// contributions, which a plugin without any has none of.
+func (m Manifest) Commands() []CommandContribution {
+	if m.Contributes == nil {
+		return nil
+	}
+	return m.Contributes.Commands
 }
 
 // PageContribution is one page a plugin draws through the host.
@@ -126,6 +153,13 @@ type Setting struct {
 	Label string `json:"label"`
 	Help  string `json:"help,omitempty"`
 	Link  string `json:"link,omitempty"`
+	// Type is the field the host draws: "string", "password", "boolean" or
+	// "select". Empty draws a text field, as an unknown type does.
+	Type string `json:"type,omitempty"`
+	// Default is the value before the listener sets one.
+	Default string `json:"default,omitempty"`
+	// Options are the values a select offers, one of which is chosen.
+	Options []string `json:"options,omitempty"`
 }
 
 // Navigation is an entry in the host's sidebar.
@@ -229,11 +263,30 @@ func (m *Manifest) Validate() error {
 		if s.Key == "" {
 			return fmt.Errorf("settings[%d] needs a key", i)
 		}
+		switch s.Type {
+		case "", "string", "password", "boolean", "select":
+		default:
+			return fmt.Errorf("settings[%d] type %q is string, password, boolean or select", i, s.Type)
+		}
+		if s.Type == "select" && len(s.Options) == 0 {
+			return fmt.Errorf("settings[%d] is a select and needs at least one option", i)
+		}
+		if s.Type == "boolean" && s.Default != "" && s.Default != "true" && s.Default != "false" {
+			return fmt.Errorf(`settings[%d] default is "true" or "false" for a boolean: %q`, i, s.Default)
+		}
 	}
 	if m.Contributes != nil {
 		for i, p := range m.Contributes.Pages {
 			if p.ID == "" || !idPattern.MatchString(p.ID) {
 				return fmt.Errorf("contributes.pages[%d] needs an id of letters, digits, dots, underscores and hyphens", i)
+			}
+		}
+		for i, c := range m.Contributes.Commands {
+			if c.ID == "" {
+				return fmt.Errorf("contributes.commands[%d] needs an id", i)
+			}
+			if !idPattern.MatchString(c.ID) {
+				return fmt.Errorf("contributes.commands[%d] id %q is letters, digits, dots, underscores and hyphens, up to 64, starting with a letter or digit", i, c.ID)
 			}
 		}
 	}

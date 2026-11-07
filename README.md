@@ -28,7 +28,8 @@ MyGo Music has a complete third-party plugin runtime, but it lives in `internal/
 - A static store page generated from the registry
 - TypeScript declarations for the host global and a `plugintest` package for plugin authors
 - A generic host-rendered page contract: `contributes.pages` and `page({ id })`, not only MyGo Music sources
-- An experimental host-rendered page schema for plugin pages
+- Commands (`contributes.commands`, `RunCommand`), typed settings, and capability negotiation (`contract`, `host.capability`)
+- Page v1: a Markdown detail body and item actions, alongside sections and items
 - `mygo-plugin` CLI: `check`, `pack`, `new`, `list`, `index`, `install`, `site`, `dev`
 - Manifest JSON Schema: `spec/plugin.schema.json`
 
@@ -92,6 +93,7 @@ Icons are names in the host's icon set (`calendar`, `star`, `playlist`, ...), no
 | `host.language()` | A BCP 47 language tag |
 | `host.t(text)` | The text in the listener's language, from `locales/<language>.json`, else the text |
 | `host.setting(key)` | The value the listener gave this plugin's setting |
+| `host.capability(name)` | Whether this host offers a capability, such as `network` or `clipboard` |
 | `host.openURL(url)` | http/https only |
 | `host.signInPrompt({ qr, text })` | What to show while signing in |
 | `host.spawn` | Starts no programs in this version; calling it returns an error |
@@ -174,7 +176,9 @@ A plugin that isn't a music source declares where its pages appear:
 }
 ```
 
-and exports `page({ id })`. `plugin.Manifest.Pages()` returns these entries, or MyGo Music's `navigation` when there are none. The host draws both with its own components; MyGo Music's richer sections (tracks, playlists, shows) are adapted by the host. [`spec/page.schema.json`](spec/page.schema.json) describes the JSON and [`docs/native-ui.md`](docs/native-ui.md) explains what the host owns. This shape is experimental and may change.
+and exports `page({ id })`. `plugin.Manifest.Pages()` returns these entries, or MyGo Music's `navigation` when there are none. The host draws both with its own components; MyGo Music's richer sections (tracks, playlists, shows) are adapted by the host.
+
+A page can also carry a `markdown` body and each item can list `actions` (`kind: "command"` or `"url"`), which the host draws as it sees fit. Commands are declared in `contributes.commands` and run through `plugin.RunCommand(id, args)`; settings are declared in `settings` with `type`, `default` and `options`, and the host renders the form. [`spec/page.schema.json`](spec/page.schema.json) describes the JSON, [`docs/contract-v2.md`](docs/contract-v2.md) the contract, and [`docs/native-ui.md`](docs/native-ui.md) what the host owns. This shape is experimental and may change.
 
 Signatures, a registry index and installing straight from a GitHub release are not done yet; see the roadmap. Don't build a review backend for v0.1.
 

@@ -15,13 +15,13 @@ func TestHostTypeScript(t *testing.T) {
 	if string(got) != HostTypeScript {
 		t.Errorf("spec/host.d.ts and HostTypeScript differ at %s", firstDifference(string(got), HostTypeScript))
 	}
-	for _, mention := range []string{"declare const host", "storage", "aesEcbEncrypt"} {
+	for _, mention := range []string{"declare const host", "storage", "aesEcbEncrypt", "capability"} {
 		if !strings.Contains(HostTypeScript, mention) {
 			t.Errorf("HostTypeScript does not mention %q", mention)
 		}
 	}
-	if HostTypeScriptVersion != 1 {
-		t.Errorf("HostTypeScriptVersion = %d, want 1", HostTypeScriptVersion)
+	if HostTypeScriptVersion != 2 {
+		t.Errorf("HostTypeScriptVersion = %d, want 2", HostTypeScriptVersion)
 	}
 }
 

@@ -1,0 +1,13 @@
+{
+  "id": "commands",
+  "name": "Commands",
+  "version": "0.1.0",
+  "main": "index.js",
+  "permissions": {},
+  "capabilities": ["network"],
+  "contributes": {
+    "commands": [
+      {"id": "echo", "title": "Echo", "description": "Answer with ok"}
+    ]
+  }
+}

@@ -1,0 +1,12 @@
+{
+  "id": "pagev1",
+  "name": "Page v1",
+  "version": "0.1.0",
+  "main": "index.js",
+  "permissions": {},
+  "contributes": {
+    "pages": [
+      {"id": "detail", "title": "Detail"}
+    ]
+  }
+}

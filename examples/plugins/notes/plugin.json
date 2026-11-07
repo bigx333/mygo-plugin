@@ -1,0 +1,12 @@
+{
+  "id": "notes",
+  "name": "Notes",
+  "version": "0.1.0",
+  "main": "index.js",
+  "permissions": {},
+  "contributes": {
+    "pages": [
+      {"id": "home", "title": "Notes", "icon": "note"}
+    ]
+  }
+}

@@ -59,6 +59,18 @@ func (p *Plugin) installHost(v *vm) error {
 		"t": moejs.NativeFunc(func(_ *moejs.Realm, _ moejs.Value, args []moejs.Value) (moejs.Value, error) {
 			return moejs.String(p.t(moejs.Arg(args, 0).String())), nil
 		}),
+		// capability answers whether this host offers what the plugin needs,
+		// as the manifest's capabilities list names it: "network",
+		// "clipboard". Anything not offered is false, not an error.
+		"capability": moejs.NativeFunc(func(_ *moejs.Realm, _ moejs.Value, args []moejs.Value) (moejs.Value, error) {
+			name := moejs.Arg(args, 0).String()
+			for _, c := range p.opts.Capabilities {
+				if c == name {
+					return moejs.Bool(true), nil
+				}
+			}
+			return moejs.Bool(false), nil
+		}),
 		"setting": moejs.NativeFunc(func(_ *moejs.Realm, _ moejs.Value, args []moejs.Value) (moejs.Value, error) {
 			if p.opts.Host.Setting == nil {
 				return moejs.String(""), nil

@@ -71,6 +71,16 @@ type Options struct {
 	// The manifest still lists what it asks for; this is the listener's
 	// answer, host by host. Nil allows every host the manifest lists.
 	Allowed func(pluginID, host string) bool
+	// Contract is the app contract this host provides, such as
+	// "mygo-music". Empty loads any plugin, as in development.
+	Contract string
+	// ContractVersion is the version of that contract the host implements.
+	ContractVersion int
+	// Capabilities are what this host offers plugins, which
+	// host.capability answers: "network", "clipboard". A capability absent
+	// here is answered false, and the host decides whether to load the
+	// plugin at all.
+	Capabilities []string
 }
 
 func (o *Options) defaults() {
@@ -115,6 +125,9 @@ func Load(dir string, opts Options) (*Plugin, error) {
 	if err != nil {
 		return nil, err
 	}
+	if err := checkContract(m, opts); err != nil {
+		return nil, err
+	}
 	if m.MinAppVersion != "" && opts.AppVersion != "" {
 		newer, err := CompareVersions(m.MinAppVersion, opts.AppVersion)
 		if err != nil {
@@ -152,6 +165,21 @@ func Load(dir string, opts Options) (*Plugin, error) {
 	p.locales = readLocales(dir)
 	readJSON(filepath.Join(p.data, "storage.json"), &p.storage)
 	return p, nil
+}
+
+// checkContract says why a plugin doesn't fit this host's contract, or nil. A
+// host that leaves Contract empty, as in development, loads any plugin.
+func checkContract(m *Manifest, opts Options) error {
+	if m.Contract == "" || opts.Contract == "" {
+		return nil
+	}
+	if m.Contract != opts.Contract {
+		return fmt.Errorf("plugin %s implements contract %q, this host provides %q", m.Name, m.Contract, opts.Contract)
+	}
+	if m.ContractVersion > opts.ContractVersion {
+		return fmt.Errorf("plugin %s needs contract %q version %d, this host provides version %d", m.Name, m.Contract, m.ContractVersion, opts.ContractVersion)
+	}
+	return nil
 }
 
 // Discover loads every plugin folder in dir. One that doesn't load is logged

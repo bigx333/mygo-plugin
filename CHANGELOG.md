@@ -8,6 +8,10 @@ mygo-plugin follows Semantic Versioning. Before 1.0, a minor version adds featur
 
 - `contributes.pages` and `Plugin.Page`: a plugin can add native pages without MyGo Music's navigation or source contract. `Manifest.Pages()` reads either.
 - The reference host renders generic pages; MyGo Music's tracks and playlists are one adapter, not the shape of every plugin.
+- `contributes.commands` and `Plugin.RunCommand`; settings gain `type`, `default` and `options`.
+- `contract`, `contractVersion`, `capabilities`, `Options.Contract` and `host.capability`; a host refuses a plugin with another contract or a newer contract version.
+- Page v1: a Markdown detail body and item actions.
+- `examples/plugins/notes`: a non-music plugin using `contributes.pages` and `page`.
 
 ## 0.6.0
 

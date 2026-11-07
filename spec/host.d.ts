@@ -1,5 +1,5 @@
 // host.d.ts — the host global this host installs, generated for mygo-plugin
-// v1. It lists exactly what a plugin can reach; host.spawn is not available,
+// v2. It lists exactly what a plugin can reach; host.spawn is not available,
 // because this host starts no programs for plugins.
 
 declare const host: {
@@ -16,6 +16,8 @@ declare const host: {
 	language(): string;
 	/** The value the listener gave one setting of this plugin; "" if unset. */
 	setting(key: string): string;
+	/** Whether the host offers a capability the plugin asked for, such as "network". */
+	capability(name: string): boolean;
 	/** Opens a web page. Only http and https are accepted. */
 	openURL(url: string): void;
 	/** Shows what the plugin wants shown while the listener signs in. */

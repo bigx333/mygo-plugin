@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://github.com/yxxbc/mygo-plugin/spec/page.schema.json",
   "title": "MyGo plugin page",
-  "description": "What a plugin's browse export returns: data the host draws with native components. Experimental, version 0.",
+  "description": "What a plugin's browse or page export returns: data the host draws with native components. Experimental, version 0.1.",
   "type": "object",
   "required": ["title", "sections"],
   "additionalProperties": true,
@@ -14,6 +14,10 @@
     "subtitle": {
       "type": "string",
       "description": "Optional line under the heading."
+    },
+    "markdown": {
+      "type": "string",
+      "description": "Optional detail-page body in CommonMark, rendered above the sections. A host without Markdown support may ignore it."
     },
     "sections": {
       "type": "array",
@@ -59,6 +63,39 @@
                   "type": "object",
                   "additionalProperties": true,
                   "description": "Host-defined JSON the host may interpret."
+                },
+                "actions": {
+                  "type": "array",
+                  "description": "Choices the host offers for this item, in display order.",
+                  "items": {
+                    "type": "object",
+                    "required": ["id", "title"],
+                    "additionalProperties": true,
+                    "properties": {
+                      "id": {
+                        "type": "string",
+                        "description": "Stable within the item; the host passes it back when the listener chooses the action."
+                      },
+                      "title": {
+                        "type": "string",
+                        "description": "The action's label."
+                      },
+                      "kind": {
+                        "type": "string",
+                        "description": "Host-defined kind, such as command or url."
+                      },
+                      "url": {
+                        "type": "string",
+                        "format": "uri",
+                        "description": "The page to open for a url action; http or https."
+                      },
+                      "meta": {
+                        "type": "object",
+                        "additionalProperties": true,
+                        "description": "Host-defined JSON the host may interpret."
+                      }
+                    }
+                  }
                 }
               }
             }

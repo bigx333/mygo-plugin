@@ -28,7 +28,8 @@ MyGo Music 有一套完整的第三方插件运行时，但它在 `internal/plug
 - 从注册表生成的静态商店页
 - 宿主全局的 TypeScript 声明，以及给插件作者的 `plugintest` 包
 - 通用宿主渲染页面契约：`contributes.pages` 与 `page({ id })`，不只是 MyGo Music 音源
-- 实验性的宿主渲染页面 schema
+- 命令（`contributes.commands`、`RunCommand`）、带类型的设置、能力协商（`contract`、`host.capability`）
+- Page v1：Markdown 详情正文和条目动作，连同 sections/items
 - `mygo-plugin` CLI：`check`、`pack`、`new`、`list`、`index`、`install`、`site`、`dev`
 - manifest JSON Schema：`spec/plugin.schema.json`
 
@@ -92,6 +93,7 @@ MyGo 已经区分可信页面和不可信页面：需要 HTML 的插件 UI 可�
 | `host.language()` | BCP 47 语言标签 |
 | `host.t(text)` | 按用户语言从 `locales/<language>.json` 取译文，没有就用原文 |
 | `host.setting(key)` | 用户给这个插件的设置值 |
+| `host.capability(name)` | 宿主是否提供某项能力，如 `network`、`clipboard` |
 | `host.openURL(url)` | 只允许 http/https |
 | `host.signInPrompt({ qr, text })` | 登录时给宿主显示 |
 | `host.spawn` | 本版本不启动进程，调用会报错 |
@@ -174,7 +176,9 @@ mygo-plugin install -version 0.2.1 -sha256 <hex> owner/repo /path/to/plugins --y
 }
 ```
 
-并导出 `page({ id })`。`plugin.Manifest.Pages()` 返回这些入口；没有时返回 MyGo Music 的 `navigation`。宿主用原生组件画两者；MyGo Music 更丰富的 sections（歌曲、歌单、播客）由宿主适配。[`spec/page.schema.json`](spec/page.schema.json) 描述 JSON，[`docs/native-ui.md`](docs/native-ui.md) 说明宿主负责什么。这个形状仍是实验性的。
+并导出 `page({ id })`。`plugin.Manifest.Pages()` 返回这些入口；没有时返回 MyGo Music 的 `navigation`。宿主用原生组件画两者；MyGo Music 更丰富的 sections（歌曲、歌单、播客）由宿主适配。
+
+页面还可以带 `markdown` 详情正文，条目可以列 `actions`（`kind: "command"` 或 `"url"`），由宿主决定怎么画。命令在 `contributes.commands` 声明，通过 `plugin.RunCommand(id, args)` 执行；设置在 `settings` 里声明 `type`、`default`、`options`，宿主渲染表单。[`spec/page.schema.json`](spec/page.schema.json) 描述 JSON，[`docs/contract-v2.md`](docs/contract-v2.md) 描述契约，[`docs/native-ui.md`](docs/native-ui.md) 说明宿主负责什么。这个形状仍是实验性的。
 
 签名、registry 索引、从 GitHub release 直接安装还没做；见路线图。别在 v0.1 就自建审核后台。
 
