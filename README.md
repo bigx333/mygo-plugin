@@ -196,7 +196,7 @@ MYGO_PLUGIN_REAL=../mygo-music-netease MYGO_PLUGIN_NETWORK=1 go test -run TestRe
 
 ## Versioning
 
-[`CHANGELOG.md`](CHANGELOG.md) lists the releases. Before 1.0, a minor version adds features and may change the API; a patch fixes bugs. The manifest and the host API freeze at 1.0.
+[`CHANGELOG.md`](CHANGELOG.md) lists the releases. Before 1.0, a minor version adds features and may change the API; a patch fixes bugs. Releases are cut at milestones, at most weekly, not per change; [`RELEASING.md`](RELEASING.md) has the policy. The manifest and the host API freeze at 1.0.
 
 ## Credits and license
 

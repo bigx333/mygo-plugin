@@ -196,7 +196,7 @@ MYGO_PLUGIN_REAL=../mygo-music-netease MYGO_PLUGIN_NETWORK=1 go test -run TestRe
 
 ## 版本
 
-[`CHANGELOG.md`](CHANGELOG.md) 记录每个版本。1.0 之前，minor 版本加功能、可能改 API，patch 版本修 bug；manifest 和宿主 API 在 1.0 冻结。
+[`CHANGELOG.md`](CHANGELOG.md) 记录每个版本。1.0 之前，minor 版本加功能、可能改 API，patch 版本修 bug；按里程碑发版，最多每周一次，不是每次改动都发；规则见 [`RELEASING.md`](RELEASING.md)。manifest 和宿主 API 在 1.0 冻结。
 
 ## 来源与许可
 
