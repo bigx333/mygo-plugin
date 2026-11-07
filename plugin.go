@@ -55,7 +55,8 @@ type Options struct {
 	// against. Empty loads any plugin, as in development.
 	AppVersion string
 	// DataDir is where the host keeps the plugins' data, one folder per
-	// plugin. Empty means the user's configuration folder.
+	// plugin. It is required, and should belong to the app, so that two
+	// apps with the same plugin don't share its storage.
 	DataDir string
 	// Host is what the app offers the plugin.
 	Host Host
@@ -69,11 +70,6 @@ type Options struct {
 }
 
 func (o *Options) defaults() {
-	if o.DataDir == "" {
-		if dir, err := os.UserConfigDir(); err == nil {
-			o.DataDir = filepath.Join(dir, "mygo-plugin")
-		}
-	}
 	if o.MemoryLimit <= 0 {
 		o.MemoryLimit = DefaultMemoryLimit
 	}
@@ -106,6 +102,9 @@ type Plugin struct {
 // Load reads and compiles the plugin in dir, without running it.
 func Load(dir string, opts Options) (*Plugin, error) {
 	opts.defaults()
+	if opts.DataDir == "" {
+		return nil, errors.New("plugin: Options.DataDir is required")
+	}
 	m, err := ReadManifest(dir)
 	if err != nil {
 		return nil, err
