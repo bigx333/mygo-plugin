@@ -356,7 +356,7 @@ func parseArgs(fs *flag.FlagSet, args []string) []string {
 func site(args []string) {
 	fs := flag.NewFlagSet("site", flag.ExitOnError)
 	registry := fs.String("registry", "registry.json", "the registry to read")
-	out := fs.String("o", "site/index.html", "the page to write")
+	out := fs.String("o", "docs/index.html", "the page to write")
 	parseArgs(fs, args)
 	reg, err := plugin.ReadRegistry(*registry)
 	if err != nil {

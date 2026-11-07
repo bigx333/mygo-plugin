@@ -126,7 +126,7 @@ mygo-plugin install netease-haruhikage /path/to/plugins --allow-network
 
 每条还会带上 GitHub 的信任信号：stars、最近提交、license、是否归档。只抓公开仓库。
 
-`mygo-plugin site` 把同一份注册表写成[静态页面](site/index.html)，带权限、健康、信任信号和安装命令，不需要服务器，也不需要 JavaScript。
+`mygo-plugin site` 把同一份注册表写成[静态页面](docs/index.html)，带权限、健康、信任信号和安装命令，不需要服务器，也不需要 JavaScript。
 
 ## 安装与分发
 
