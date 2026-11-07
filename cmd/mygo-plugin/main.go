@@ -2,7 +2,9 @@
 package main
 
 import (
+	"bufio"
 	"context"
+	"errors"
 	"flag"
 	"fmt"
 	"os"
@@ -30,6 +32,8 @@ func main() {
 		index(os.Args[2:])
 	case "install":
 		install(os.Args[2:])
+	case "dev":
+		dev(os.Args[2:])
 	case "help", "-h", "--help":
 		usage()
 	default:
@@ -46,8 +50,9 @@ func usage() {
   mygo-plugin new <id>           start a plugin in a new folder
   mygo-plugin list <plugins>     list the plugins installed in a folder
   mygo-plugin index [repo...]     collect plugin.json files into a registry
-  mygo-plugin install <repo> <plugins>
-                                  install a plugin from GitHub
+  mygo-plugin install <id|repo> <plugins>
+                                  install a plugin from GitHub, by id from registry.json
+  mygo-plugin dev [dir]          recheck a plugin when its files change
 
 check takes -app-version to enforce minAppVersion.
 `)
@@ -57,10 +62,10 @@ check takes -app-version to enforce minAppVersion.
 func check(args []string) {
 	fs := flag.NewFlagSet("check", flag.ExitOnError)
 	app := fs.String("app-version", "", "the host version minAppVersion is checked against")
-	fs.Parse(args)
+	pos := parseArgs(fs, args)
 	dir := "."
-	if fs.NArg() > 0 {
-		dir = fs.Arg(0)
+	if len(pos) > 0 {
+		dir = pos[0]
 	}
 	m, exports, err := plugin.Inspect(dir, *app)
 	if err != nil {
@@ -93,10 +98,10 @@ func check(args []string) {
 func pack(args []string) {
 	fs := flag.NewFlagSet("pack", flag.ExitOnError)
 	out := fs.String("o", "", "the zip to write")
-	fs.Parse(args)
+	pos := parseArgs(fs, args)
 	dir := "."
-	if fs.NArg() > 0 {
-		dir = fs.Arg(0)
+	if len(pos) > 0 {
+		dir = pos[0]
 	}
 	m, _, err := plugin.Inspect(dir, "")
 	if err != nil {
@@ -188,10 +193,9 @@ func index(args []string) {
 	topic := fs.String("topic", "mygo-music-plugin", "the GitHub topic to collect")
 	out := fs.String("o", "registry.json", "the registry to write")
 	token := fs.String("token", os.Getenv("GITHUB_TOKEN"), "a GitHub token, for the rate limit")
-	fs.Parse(args)
+	repos := parseArgs(fs, args)
 	ctx := context.Background()
 	g := &plugin.GitHub{Token: *token}
-	repos := fs.Args()
 	if len(repos) == 0 {
 		var err error
 		repos, err = g.Repos(ctx, *topic)
@@ -211,21 +215,139 @@ func index(args []string) {
 	for _, repo := range failed {
 		fmt.Fprintf(os.Stderr, "skip %s: %v\n", repo, failures[repo])
 	}
-	fmt.Printf("%s: %d plugins, %d repositories, %d skipped\n", *out, len(registry.Entries), len(repos), len(failures))
+	broken := 0
+	for _, e := range registry.Entries {
+		if e.Health != nil && e.Health.Status == "error" {
+			broken++
+		}
+	}
+	fmt.Printf("%s: %d plugins, %d repositories, %d skipped, %d that don't compile\n",
+		*out, len(registry.Entries), len(repos), len(failures), broken)
 }
 
 func install(args []string) {
 	fs := flag.NewFlagSet("install", flag.ExitOnError)
+	registryPath := fs.String("registry", "registry.json", "the registry an id is looked up in")
+	version := fs.String("version", "", "the version to install; latest when empty")
+	sha := fs.String("sha256", "", "the sha256 of the release zip")
+	yes := fs.Bool("yes", false, "don't ask before installing")
+	allowNetwork := fs.Bool("allow-network", false, "accept the plugin's network permission")
+	allowProcess := fs.Bool("allow-process", false, "accept the plugin's process permission")
 	token := fs.String("token", os.Getenv("GITHUB_TOKEN"), "a GitHub token, for the rate limit")
-	fs.Parse(args)
-	if fs.NArg() != 2 {
+	pos := parseArgs(fs, args)
+	if len(pos) != 2 {
 		usage()
 	}
-	m, err := (&plugin.GitHub{Token: *token}).Install(context.Background(), fs.Arg(0), fs.Arg(1))
+	target, dir := pos[0], pos[1]
+	ctx := context.Background()
+	g := &plugin.GitHub{Token: *token}
+
+	var repo, wantVersion, wantSHA string
+	var entry *plugin.RegistryEntry
+	if strings.Contains(target, "/") {
+		if !plugin.ValidRepo(target) {
+			fail(fmt.Errorf("not a repository, owner/name: %q", target))
+		}
+		repo, wantVersion, wantSHA = target, *version, *sha
+	} else {
+		reg, err := plugin.ReadRegistry(*registryPath)
+		if err != nil {
+			fail(err)
+		}
+		entry = findEntry(reg, target)
+		if entry == nil {
+			fail(fmt.Errorf("%s is not in %s", target, *registryPath))
+		}
+		repo, wantVersion, wantSHA = entry.Repo, entry.Version, entry.SHA256
+		if *version != "" && *version != entry.Version {
+			// A checksum of the latest release says nothing about another.
+			wantVersion, wantSHA = *version, ""
+		}
+		if *sha != "" {
+			wantSHA = *sha
+		}
+	}
+	m, err := g.Manifest(ctx, repo)
 	if err != nil {
 		fail(err)
 	}
 	fmt.Printf("%s %s (%s)\n", m.Name, m.Version, m.ID)
+	fmt.Printf("from %s\n", repo)
+	if entry != nil && entry.Health != nil && entry.Health.Status == "error" {
+		fmt.Printf("warning: the registry's last check failed: %s\n", entry.Health.Error)
+	}
+	if len(m.Permissions.Network) > 0 {
+		fmt.Printf("network: %s\n", strings.Join(m.Permissions.Network, ", "))
+		if !*allowNetwork {
+			fail(errors.New("the plugin asks for network; pass --allow-network to accept"))
+		}
+	}
+	if len(m.Permissions.Process) > 0 {
+		fmt.Printf("process: %s\n", strings.Join(m.Permissions.Process, ", "))
+		if !*allowProcess {
+			fail(errors.New("the plugin asks to start programs; pass --allow-process to accept"))
+		}
+	}
+	if !*yes {
+		if !isTerminal() {
+			fail(errors.New("use --yes when there is no terminal to ask on"))
+		}
+		fmt.Print("Install? [y/N] ")
+		line, _ := bufio.NewReader(os.Stdin).ReadString('\n')
+		if !strings.HasPrefix(strings.ToLower(strings.TrimSpace(line)), "y") {
+			fmt.Println("cancelled")
+			return
+		}
+	}
+	installed, err := g.InstallVersion(ctx, repo, wantVersion, wantSHA, dir)
+	if err != nil {
+		fail(err)
+	}
+	fmt.Printf("%s %s (%s) installed\n", installed.Name, installed.Version, installed.ID)
+}
+
+func findEntry(reg *plugin.Registry, id string) *plugin.RegistryEntry {
+	for i := range reg.Entries {
+		if reg.Entries[i].ID == id {
+			return &reg.Entries[i]
+		}
+	}
+	return nil
+}
+
+func isTerminal() bool {
+	info, err := os.Stdin.Stat()
+	return err == nil && info.Mode()&os.ModeCharDevice != 0
+}
+
+// parseArgs parses flags wherever they are among the arguments, as users
+// write them after the folder, and returns the positional arguments.
+func parseArgs(fs *flag.FlagSet, args []string) []string {
+	var flags, pos []string
+	for i := 0; i < len(args); i++ {
+		a := args[i]
+		if !strings.HasPrefix(a, "-") || a == "-" {
+			pos = append(pos, a)
+			continue
+		}
+		flags = append(flags, a)
+		if strings.Contains(a, "=") {
+			continue
+		}
+		f := fs.Lookup(strings.TrimLeft(a, "-"))
+		if f == nil {
+			continue
+		}
+		if b, ok := f.Value.(interface{ IsBoolFlag() bool }); ok && b.IsBoolFlag() {
+			continue
+		}
+		if i+1 < len(args) {
+			flags = append(flags, args[i+1])
+			i++
+		}
+	}
+	fs.Parse(flags)
+	return pos
 }
 
 func fail(err error) {

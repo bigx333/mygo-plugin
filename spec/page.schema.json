@@ -1,0 +1,70 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/yxxbc/mygo-plugin/spec/page.schema.json",
+  "title": "MyGo plugin page",
+  "description": "What a plugin's browse export returns: data the host draws with native components. Experimental, version 0.",
+  "type": "object",
+  "required": ["title", "sections"],
+  "additionalProperties": true,
+  "properties": {
+    "title": {
+      "type": "string",
+      "description": "The page's heading."
+    },
+    "subtitle": {
+      "type": "string",
+      "description": "Optional line under the heading."
+    },
+    "sections": {
+      "type": "array",
+      "description": "The page's groups of items; may be empty.",
+      "items": {
+        "type": "object",
+        "required": ["items"],
+        "additionalProperties": true,
+        "properties": {
+          "title": {
+            "type": "string",
+            "description": "Optional group heading."
+          },
+          "items": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": ["id", "title"],
+              "additionalProperties": true,
+              "properties": {
+                "id": {
+                  "type": "string",
+                  "description": "Stable within the page; the host passes it back for actions."
+                },
+                "title": {
+                  "type": "string",
+                  "description": "The item's main label."
+                },
+                "subtitle": {
+                  "type": "string",
+                  "description": "Optional second line, such as an artist or album."
+                },
+                "imageURL": {
+                  "type": "string",
+                  "format": "uri",
+                  "description": "Optional image the host loads and crops."
+                },
+                "kind": {
+                  "type": "string",
+                  "description": "Host-defined kind, such as track, playlist or show."
+                },
+                "meta": {
+                  "type": "object",
+                  "additionalProperties": true,
+                  "description": "Host-defined JSON the host may interpret."
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

@@ -23,8 +23,11 @@ MyGo Music has a complete third-party plugin runtime, but it lives in `internal/
 - `host` API: storage, crypto (MD5 / AES-ECB), language, setting, openURL, signInPrompt
 - `fetch` limited to `permissions.network` hosts; no permission means no network
 - Call timeouts, a 256 MiB memory limit, and automatic restart when stuck
-- Install from a folder or a ZIP; ZIP path traversal and size limits; `List` / `Uninstall`
-- `mygo-plugin` CLI: `check`, `pack`, `new`, `list`
+- Install from a folder, a ZIP or GitHub, by id, version and checksum, with explicit consent for network and process permissions
+- A registry of the `mygo-music-plugin` topic, rebuilt weekly, with a health check that compiles each module and records its exports
+- TypeScript declarations for the host global and a `plugintest` package for plugin authors
+- An experimental host-rendered page schema for plugin pages
+- `mygo-plugin` CLI: `check`, `pack`, `new`, `list`, `index`, `install`, `dev`
 - Manifest JSON Schema: `spec/plugin.schema.json`
 
 ## Quick start
@@ -110,19 +113,14 @@ Icons are names in the host's icon set (`calendar`, `star`, `playlist`, ...), no
 
 ## Registry
 
-`registry.json` lists the plugins in the `mygo-music-plugin` topic, one entry per plugin id: 23 plugins from 27 repositories today. Rebuild it with:
+`registry.json` lists the plugins in the `mygo-music-plugin` topic, one entry per plugin id: 24 plugins from 30 repositories today. Each entry carries the manifest's permissions, a checksum of the release zip when GitHub reports one, and a health record: `index` compiles the module without running it and keeps the exports, or the error that stopped it.
 
 ```sh
-GITHUB_TOKEN=... mygo-plugin index -o registry.json
+GITHUB_TOKEN=... mygo-plugin index -o registry.json  # the token also reads release checksums
+mygo-plugin install netease-haruhikage /path/to/plugins --allow-network
 ```
 
-and install one:
-
-```sh
-mygo-plugin install owner/repo /path/to/plugins
-```
-
-When two repositories share an id, the newer version wins, then the repository that sorts first. Installing a plugin is a trust decision: read the manifest's permissions before it runs. The registry also refreshes weekly from GitHub Actions.
+When two repositories share an id, the newer version wins, then the repository that sorts first. Installing a plugin is a trust decision: the command prints its network and process permissions and refuses to continue without `--allow-network` and `--allow-process`. The registry refreshes weekly from GitHub Actions.
 
 ## Installing and distributing
 
@@ -138,7 +136,25 @@ mygo-plugin check -app-version 0.1.26 ./my-plugin
 mygo-plugin pack -o my-plugin.zip ./my-plugin
 mygo-plugin new my-plugin
 mygo-plugin list ~/Library/Application\ Support/MyApp/plugins
+
+# From a registry, with the release's checksum and explicit consent
+mygo-plugin install netease-haruhikage /path/to/plugins --allow-network --yes
+# A pinned version, by repository
+mygo-plugin install -version 0.2.1 -sha256 <hex> owner/repo /path/to/plugins --yes
 ```
+
+`install` reads `registry.json` for an id, takes the latest release or the version asked for, verifies the checksum when one is known, and installs atomically. A plugin that asks for network or programs needs `--allow-network` or `--allow-process`: the flags are the listener's consent, not the plugin's declaration. Without a terminal, pass `--yes`.
+
+## For plugin authors
+
+- [`spec/host.d.ts`](spec/host.d.ts) declares the `host` global; `plugin.HostTypeScript` returns the same text for generators. It is versioned with `HostTypeScriptVersion`.
+- `plugintest.New(t, dir, plugin.Options{...})` loads a plugin for a test with a temporary data folder, a ten second call timeout and `t.Logf` for its console.
+- `mygo-plugin dev .` rechecks the manifest and compiles the module whenever a file changes, printing the exports or the error.
+- [`spec/plugin.schema.json`](spec/plugin.schema.json) checks `plugin.json` in an editor.
+
+## Native pages (experimental)
+
+A plugin may answer `browse` with a host-rendered page: a title, sections and items, with no view tree, HTML or CSS. `plugin.Browse(page)` decodes it into `Page`, `Section` and `Item`; [`spec/page.schema.json`](spec/page.schema.json) describes the JSON and [`docs/native-ui.md`](docs/native-ui.md) explains what the host owns. MyGo Music's richer sections (tracks, playlists, shows) are adapted by the host; this shape is a smaller, generic subset and may change.
 
 Signatures, a registry index and installing straight from a GitHub release are not done yet; see the roadmap. Don't build a review backend for v0.1.
 
@@ -164,8 +180,12 @@ MYGO_PLUGIN_REAL=../mygo-music-netease MYGO_PLUGIN_NETWORK=1 go test -run TestRe
 - Deeplinks for installs
 - Ed25519 signatures and install verification
 - A real implementation of the process permission (allowlist plus a grant UI)
-- Generate `host.d.ts` from the host's Go contract, and a mock host test package
+- Generate app-specific host types from a Go contract
 - A standard icon name table with cross-platform fallbacks
+
+## Versioning
+
+[`CHANGELOG.md`](CHANGELOG.md) lists the releases. Before 1.0, a minor version adds features and may change the API; a patch fixes bugs. The manifest and the host API freeze at 1.0.
 
 ## Credits and license
 

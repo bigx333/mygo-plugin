@@ -26,6 +26,21 @@ type RegistryEntry struct {
 	Main          string      `json:"main,omitempty"`
 	MinAppVersion string      `json:"minAppVersion,omitempty"`
 	Permissions   Permissions `json:"permissions,omitempty"`
+	// SHA256 is the sha256 of the latest release's first zip asset, when
+	// GitHub lists one and a token was used.
+	SHA256 string `json:"sha256,omitempty"`
+	// Health is what the last build saw of the module: whether it compiles,
+	// and what it exports when it does.
+	Health *Health `json:"health,omitempty"`
+}
+
+// Health says whether a repository's module compiles, and what it exports
+// when it does.
+type Health struct {
+	Status    string    `json:"status"` // "ok" or "error"
+	Error     string    `json:"error,omitempty"`
+	Exports   []string  `json:"exports,omitempty"`
+	CheckedAt time.Time `json:"checkedAt"`
 }
 
 // Registry is a list of plugins, built from their repositories.
@@ -35,16 +50,20 @@ type Registry struct {
 	Entries     []RegistryEntry `json:"entries"`
 }
 
-// BuildRegistry reads the plugin.json of each repository and collects them,
-// one entry per plugin id. A repository that doesn't read is left out and
-// reported; it doesn't take the others with it.
+// BuildRegistry reads the plugin.json and main module of each repository and
+// collects them, one entry per plugin id. A repository that doesn't read is
+// left out and reported; it doesn't take the others with it. One whose module
+// doesn't compile is kept, with Health saying why.
 func BuildRegistry(ctx context.Context, g *GitHub, repos []string) (*Registry, map[string]error) {
 	repos = append([]string(nil), repos...)
 	sort.Strings(repos)
 	type result struct {
-		repo string
-		m    *Manifest
-		err  error
+		repo      string
+		m         *Manifest
+		exports   []string
+		healthErr error
+		sha       string
+		err       error
 	}
 	jobs := make(chan string)
 	results := make(chan result)
@@ -55,7 +74,20 @@ func BuildRegistry(ctx context.Context, g *GitHub, repos []string) (*Registry, m
 			defer wg.Done()
 			for repo := range jobs {
 				m, err := g.Manifest(ctx, repo)
-				results <- result{repo, m, err}
+				if err != nil {
+					results <- result{repo: repo, err: err}
+					continue
+				}
+				// The manifest is already read: the second request is the
+				// module, as Inspect makes it after its own Manifest call.
+				exports, healthErr := g.compileMain(ctx, repo, m)
+				results <- result{
+					repo:      repo,
+					m:         m,
+					exports:   exports,
+					healthErr: healthErr,
+					sha:       g.releaseSHA256(ctx, repo),
+				}
 			}
 		}()
 	}
@@ -86,6 +118,13 @@ func BuildRegistry(ctx context.Context, g *GitHub, repos []string) (*Registry, m
 			Main:          r.m.Main,
 			MinAppVersion: r.m.MinAppVersion,
 			Permissions:   r.m.Permissions,
+			SHA256:        r.sha,
+			Health:        &Health{Status: "ok", Exports: r.exports, CheckedAt: time.Now().UTC().Truncate(time.Second)},
+		}
+		if r.healthErr != nil {
+			entry.Health.Status = "error"
+			entry.Health.Error = r.healthErr.Error()
+			entry.Health.Exports = nil
 		}
 		old, ok := byID[entry.ID]
 		if !ok || newerEntry(entry, old) {

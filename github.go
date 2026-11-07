@@ -2,15 +2,21 @@ package plugin
 
 import (
 	"context"
+	"crypto/sha256"
+	"encoding/hex"
 	"encoding/json"
 	"errors"
 	"fmt"
 	"io"
 	"net/http"
+	"net/url"
 	"os"
 	"regexp"
+	"sort"
 	"strings"
 	"time"
+
+	"github.com/MoeForge/moejs"
 )
 
 // GitHub reaches GitHub's API, raw files and archives. The zero value uses
@@ -26,6 +32,9 @@ type GitHub struct {
 }
 
 var repoPattern = regexp.MustCompile(`^[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+$`)
+
+// maxModule is the largest module Inspect reads.
+const maxModule = 8 << 20
 
 // ValidRepo reports whether s is owner/name.
 func ValidRepo(s string) bool { return repoPattern.MatchString(s) }
@@ -72,15 +81,7 @@ func (g *GitHub) Manifest(ctx context.Context, repo string) (*Manifest, error) {
 	if !ValidRepo(repo) {
 		return nil, fmt.Errorf("not a repository, owner/name: %q", repo)
 	}
-	resp, err := g.request(ctx, g.raw()+"/"+repo+"/HEAD/plugin.json")
-	if err != nil {
-		return nil, err
-	}
-	defer resp.Body.Close()
-	if resp.StatusCode != http.StatusOK {
-		return nil, fmt.Errorf("%s: plugin.json: %s", repo, resp.Status)
-	}
-	b, err := io.ReadAll(io.LimitReader(resp.Body, 1<<20))
+	b, err := g.rawFile(ctx, repo, "plugin.json", 1<<20)
 	if err != nil {
 		return nil, err
 	}
@@ -89,6 +90,65 @@ func (g *GitHub) Manifest(ctx context.Context, repo string) (*Manifest, error) {
 		return nil, fmt.Errorf("%s: %w", repo, err)
 	}
 	return m, nil
+}
+
+// Inspect reads a repository's plugin.json and its main module from the
+// default branch, and compiles the module without running it: what the
+// manifest says and the exports the host can call.
+func (g *GitHub) Inspect(ctx context.Context, repo string) (*Manifest, []string, error) {
+	m, err := g.Manifest(ctx, repo)
+	if err != nil {
+		return nil, nil, err
+	}
+	exports, err := g.compileMain(ctx, repo, m)
+	if err != nil {
+		return nil, nil, err
+	}
+	return m, exports, nil
+}
+
+// compileMain reads the module a manifest names from the default branch and
+// compiles it with the already read manifest, without running it. It is the
+// second half of Inspect, so a caller that has the manifest pays one request.
+func (g *GitHub) compileMain(ctx context.Context, repo string, m *Manifest) ([]string, error) {
+	source, err := g.rawFile(ctx, repo, m.Main, maxModule)
+	if err != nil {
+		return nil, err
+	}
+	compile := moejs.Compile
+	if strings.HasSuffix(m.Main, ".ts") {
+		compile = moejs.CompileTS
+	}
+	mod, err := compile(m.Main, string(source))
+	if err != nil {
+		return nil, fmt.Errorf("%s: %s: %w", repo, m.Main, err)
+	}
+	exports := append([]string(nil), mod.Exports()...)
+	sort.Strings(exports)
+	return exports, nil
+}
+
+// rawFile reads a file of the repository's default branch.
+func (g *GitHub) rawFile(ctx context.Context, repo, name string, limit int64) ([]byte, error) {
+	resp, err := g.request(ctx, g.raw()+"/"+repo+"/HEAD/"+escapeSegments(name))
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close()
+	if resp.StatusCode != http.StatusOK {
+		return nil, fmt.Errorf("%s: %s: %s", repo, name, resp.Status)
+	}
+	return io.ReadAll(io.LimitReader(resp.Body, limit))
+}
+
+// escapeSegments escapes each element of a slash-separated path, so that a
+// file name with a space or a question mark reaches the right file.
+func escapeSegments(p string) string {
+	parts := strings.Split(p, "/")
+	for i, s := range parts {
+		parts[i] = url.PathEscape(s)
+	}
+	return strings.Join(parts, "/")
 }
 
 // Repos lists the public repositories with a topic, newest first.
@@ -134,37 +194,105 @@ func (g *GitHub) Repos(ctx context.Context, topic string) ([]string, error) {
 // Install downloads the latest release of repo, or its source at the default
 // branch, and installs it into pluginsDir.
 func (g *GitHub) Install(ctx context.Context, repo, pluginsDir string) (*Manifest, error) {
+	return g.InstallVersion(ctx, repo, "", "", pluginsDir)
+}
+
+// InstallVersion installs the release of repo at version, or the latest when
+// version is empty. Only the latest falls back to the source at the default
+// branch: a version that has no release is an error. A wantSHA, hex with or
+// without a "sha256:" prefix, must match the zip before it is installed.
+func (g *GitHub) InstallVersion(ctx context.Context, repo, version, wantSHA, pluginsDir string) (*Manifest, error) {
 	if !ValidRepo(repo) {
 		return nil, fmt.Errorf("not a repository, owner/name: %q", repo)
 	}
-	url, accept, err := g.releaseZip(ctx, repo)
+	zipURL, accept, found, err := g.releaseZip(ctx, repo, version)
 	if err != nil {
 		return nil, err
 	}
-	if url == "" {
-		url, accept = g.web()+"/"+repo+"/archive/HEAD.zip", ""
+	if zipURL == "" {
+		if version != "" {
+			if !found {
+				return nil, fmt.Errorf("%s: no release for version %s", repo, version)
+			}
+			return nil, fmt.Errorf("%s: release %s has no zip asset", repo, version)
+		}
+		zipURL, accept = g.web()+"/"+repo+"/archive/HEAD.zip", ""
 	}
-	zipPath, err := g.download(ctx, url, accept)
+	zipPath, err := g.download(ctx, zipURL, accept)
 	if err != nil {
 		return nil, err
 	}
 	defer os.Remove(zipPath)
+	if wantSHA != "" {
+		if err := checkSHA256(zipPath, wantSHA); err != nil {
+			return nil, err
+		}
+	}
 	return InstallZip(zipPath, pluginsDir)
 }
 
-// releaseZip is the zip of the latest release, or "" when there is none.
-func (g *GitHub) releaseZip(ctx context.Context, repo string) (url, accept string, err error) {
-	resp, err := g.request(ctx, g.api()+"/repos/"+repo+"/releases/latest")
+// checkSHA256 checks that the file's sha256 is want, in either case, which
+// GitHub writes as "sha256:...".
+func checkSHA256(path, want string) error {
+	f, err := os.Open(path)
 	if err != nil {
-		return "", "", err
+		return err
+	}
+	defer f.Close()
+	h := sha256.New()
+	if _, err := io.Copy(h, f); err != nil {
+		return err
+	}
+	got := hex.EncodeToString(h.Sum(nil))
+	if !strings.EqualFold(got, stripDigest(want)) {
+		return fmt.Errorf("sha256 is %s, not %s", got, want)
+	}
+	return nil
+}
+
+// stripDigest removes the "sha256:" prefix GitHub puts on a digest.
+func stripDigest(s string) string {
+	s = strings.TrimSpace(s)
+	if len(s) >= 7 && strings.EqualFold(s[:7], "sha256:") {
+		s = s[7:]
+	}
+	return s
+}
+
+// releaseZip is the zip of a release: the latest when version is empty, or the
+// one tagged v<version> or <version>. found says the release exists; it is
+// false when there is none or, for the latest, the API doesn't answer, so that
+// the install falls back to the source.
+func (g *GitHub) releaseZip(ctx context.Context, repo, version string) (zipURL, accept string, found bool, err error) {
+	if version == "" {
+		return g.releaseAsset(ctx, g.api()+"/repos/"+repo+"/releases/latest", false)
+	}
+	zipURL, accept, found, err = g.releaseAsset(ctx, g.api()+"/repos/"+repo+"/releases/tags/v"+url.PathEscape(version), true)
+	if err != nil || found {
+		return zipURL, accept, found, err
+	}
+	return g.releaseAsset(ctx, g.api()+"/repos/"+repo+"/releases/tags/"+url.PathEscape(version), true)
+}
+
+// releaseAsset is the first zip asset of a release, by its API URL when a
+// token is set and its browser URL otherwise. A release that isn't there is
+// found false. With strict, any other status is an error; without it a rate
+// limit is not, so that an install can fall back to the source.
+func (g *GitHub) releaseAsset(ctx context.Context, releaseURL string, strict bool) (zipURL, accept string, found bool, err error) {
+	resp, err := g.request(ctx, releaseURL)
+	if err != nil {
+		return "", "", false, err
 	}
 	defer resp.Body.Close()
 	if resp.StatusCode == http.StatusNotFound {
-		return "", "", nil
+		return "", "", false, nil
 	}
 	if resp.StatusCode != http.StatusOK {
+		if strict {
+			return "", "", false, fmt.Errorf("%s: %s", releaseURL, resp.Status)
+		}
 		// A rate limit must not stop an install that the archive can do.
-		return "", "", nil
+		return "", "", false, nil
 	}
 	var body struct {
 		Assets []struct {
@@ -174,7 +302,7 @@ func (g *GitHub) releaseZip(ctx context.Context, repo string) (url, accept strin
 		} `json:"assets"`
 	}
 	if err := json.NewDecoder(io.LimitReader(resp.Body, 1<<20)).Decode(&body); err != nil {
-		return "", "", err
+		return "", "", true, err
 	}
 	for _, a := range body.Assets {
 		if !strings.HasSuffix(strings.ToLower(a.Name), ".zip") {
@@ -182,11 +310,43 @@ func (g *GitHub) releaseZip(ctx context.Context, repo string) (url, accept strin
 		}
 		// A private repository's browser URL is a 404; its API asset is not.
 		if g.Token != "" && a.URL != "" {
-			return a.URL, "application/octet-stream", nil
+			return a.URL, "application/octet-stream", true, nil
 		}
-		return a.Web, "", nil
+		return a.Web, "", true, nil
 	}
-	return "", "", nil
+	return "", "", true, nil
+}
+
+// releaseSHA256 is the sha256 GitHub lists for the latest release's first zip
+// asset, or "" when there is no release, no token, or the API doesn't answer:
+// a missing digest shouldn't fail a build, and a build shouldn't download.
+func (g *GitHub) releaseSHA256(ctx context.Context, repo string) string {
+	if g.Token == "" {
+		return ""
+	}
+	resp, err := g.request(ctx, g.api()+"/repos/"+repo+"/releases/latest")
+	if err != nil {
+		return ""
+	}
+	defer resp.Body.Close()
+	if resp.StatusCode != http.StatusOK {
+		return ""
+	}
+	var body struct {
+		Assets []struct {
+			Name   string `json:"name"`
+			Digest string `json:"digest"`
+		} `json:"assets"`
+	}
+	if err := json.NewDecoder(io.LimitReader(resp.Body, 1<<20)).Decode(&body); err != nil {
+		return ""
+	}
+	for _, a := range body.Assets {
+		if strings.HasSuffix(strings.ToLower(a.Name), ".zip") {
+			return stripDigest(a.Digest)
+		}
+	}
+	return ""
 }
 
 func (g *GitHub) download(ctx context.Context, url, accept string) (string, error) {

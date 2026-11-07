@@ -1,0 +1,10 @@
+{
+  "id": "pages",
+  "name": "Pages",
+  "version": "0.1.0",
+  "main": "index.js",
+  "permissions": {},
+  "navigation": [
+    {"title": "Demo", "page": "demo", "icon": "star"}
+  ]
+}

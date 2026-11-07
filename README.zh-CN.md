@@ -23,8 +23,11 @@ MyGo Music 有一套完整的第三方插件运行时，但它在 `internal/plug
 - `host` API：storage、crypto（MD5 / AES-ECB）、language、setting、openURL、signInPrompt
 - `fetch` 按 `permissions.network` 的 host allowlist 放行；没有权限就完全断网
 - 调用超时、256 MiB 内存上限、卡死自动重启
-- 从文件夹或 ZIP 安装；ZIP 防穿越、限大小；`List` / `Uninstall`
-- `mygo-plugin` CLI：`check`、`pack`、`new`、`list`
+- 从文件夹、ZIP 或 GitHub 安装；支持 id、版本和校验和；网络与进程权限需要显式同意
+- `mygo-music-plugin` topic 的注册表，每周重建；`index` 会编译模块、记录导出，不执行
+- 宿主全局的 TypeScript 声明，以及给插件作者的 `plugintest` 包
+- 实验性的宿主渲染页面 schema
+- `mygo-plugin` CLI：`check`、`pack`、`new`、`list`、`index`、`install`、`dev`
 - manifest JSON Schema：`spec/plugin.schema.json`
 
 ## 快速开始
@@ -110,19 +113,14 @@ MyGo 已经区分可信页面和不可信页面：需要 HTML 的插件 UI 可�
 
 ## 注册表
 
-`registry.json` 收录 `mygo-music-plugin` topic 下的插件，按插件 id 去重：目前 27 个仓库得到 23 个插件。重新生成：
+`registry.json` 收录 `mygo-music-plugin` topic 下的插件，按插件 id 去重：目前 30 个仓库得到 24 个插件。每条带权限、GitHub 给出时的 release zip 校验和，以及健康记录：`index` 会编译模块但不执行，留下导出或编译错误。
 
 ```sh
-GITHUB_TOKEN=... mygo-plugin index -o registry.json
+GITHUB_TOKEN=... mygo-plugin index -o registry.json  # token 也用来读取 release 校验和
+mygo-plugin install netease-haruhikage /path/to/plugins --allow-network
 ```
 
-安装其中一个：
-
-```sh
-mygo-plugin install owner/repo /path/to/plugins
-```
-
-两个仓库用同一个 id 时，版本新的优先，版本相同则仓库名排序靠前的优先。安装插件是一次信任决定：运行前先看 manifest 的权限。注册表也会由 GitHub Actions 每周刷新。
+两个仓库用同一个 id 时，版本新的优先，版本相同则仓库名排序靠前的优先。安装插件是一次信任决定：命令会打印网络和进程权限，没有 `--allow-network` 和 `--allow-process` 不会继续。注册表由 GitHub Actions 每周刷新。
 
 ## 安装与分发
 
@@ -138,7 +136,25 @@ mygo-plugin check -app-version 0.1.26 ./my-plugin
 mygo-plugin pack -o my-plugin.zip ./my-plugin
 mygo-plugin new my-plugin
 mygo-plugin list ~/Library/Application\ Support/MyApp/plugins
+
+# 从注册表安装，带校验和与显式同意
+mygo-plugin install netease-haruhikage /path/to/plugins --allow-network --yes
+# 指定版本，按仓库安装
+mygo-plugin install -version 0.2.1 -sha256 <hex> owner/repo /path/to/plugins --yes
 ```
+
+`install` 按 id 读 `registry.json`，取最新 release 或指定版本，已知校验和时校验，原子安装。需要网络或起进程的插件必须加 `--allow-network` / `--allow-process`：这是用户的同意，不是插件的声明。没有终端时加 `--yes`。
+
+## 给插件作者
+
+- [`spec/host.d.ts`](spec/host.d.ts) 声明 `host` 全局；`plugin.HostTypeScript` 返回同一段文本，版本是 `HostTypeScriptVersion`
+- `plugintest.New(t, dir, plugin.Options{...})` 用临时数据目录、10 秒调用超时和 `t.Logf` 加载插件写测试
+- `mygo-plugin dev .` 文件变化时重新检查 manifest 并编译模块，打印导出或错误
+- [`spec/plugin.schema.json`](spec/plugin.schema.json) 在编辑器里检查 `plugin.json`
+
+## 原生页面（实验）
+
+插件可以让 `browse` 返回宿主渲染的页面：标题、分区和条目，没有视图树、HTML 或 CSS。`plugin.Browse(page)` 解码成 `Page`、`Section`、`Item`；[`spec/page.schema.json`](spec/page.schema.json) 描述 JSON，[`docs/native-ui.md`](docs/native-ui.md) 说明宿主负责什么。MyGo Music 更丰富的 sections（歌曲、歌单、播客）由宿主适配；这里是更小的通用子集，可能变化。
 
 签名、registry 索引、从 GitHub release 直接安装还没做；见路线图。别在 v0.1 就自建审核后台。
 
@@ -164,8 +180,12 @@ MYGO_PLUGIN_REAL=../mygo-music-netease MYGO_PLUGIN_NETWORK=1 go test -run TestRe
 - 安装 deeplink
 - Ed25519 签名与安装校验
 - 进程权限的真实实现（allowlist + 授权 UI）
-- 从宿主 Go 契约生成 `host.d.ts`，加 mock host 测试包
+- 从应用的 Go 契约生成应用专属的宿主类型
 - 标准图标名表与跨平台回退
+
+## 版本
+
+[`CHANGELOG.md`](CHANGELOG.md) 记录每个版本。1.0 之前，minor 版本加功能、可能改 API，patch 版本修 bug；manifest 和宿主 API 在 1.0 冻结。
 
 ## 来源与许可
 

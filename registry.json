@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "generatedAt": "2026-11-07T05:26:06Z",
+  "generatedAt": "2026-11-07T05:39:27Z",
   "entries": [
     {
       "id": "ampache",
@@ -13,12 +13,30 @@
         "network": [
           "*"
         ]
+      },
+      "health": {
+        "status": "ok",
+        "exports": [
+          "account",
+          "album",
+          "artist",
+          "home",
+          "lyrics",
+          "playlist",
+          "playlists",
+          "search",
+          "setSetting",
+          "signIn",
+          "signOut",
+          "stream"
+        ],
+        "checkedAt": "2026-11-07T05:39:20Z"
       }
     },
     {
       "id": "apple-music",
       "name": "Apple Music",
-      "version": "0.1.4",
+      "version": "0.1.5",
       "repo": "InkCitrus/mygo-music-apple-music",
       "main": "dist/index.js",
       "minAppVersion": "0.1.8",
@@ -40,6 +58,73 @@
           "/usr/bin/osascript",
           "osascript"
         ]
+      },
+      "health": {
+        "status": "ok",
+        "exports": [
+          "account",
+          "addToPlaylist",
+          "album",
+          "artist",
+          "browse",
+          "buildDevicesScript",
+          "buildPauseScript",
+          "buildPlayScript",
+          "buildReadAudioQualityScript",
+          "buildResumeScript",
+          "buildSeekScript",
+          "buildSelectDeviceScript",
+          "buildStateScript",
+          "buildVolumeScript",
+          "buildWriteAudioQualityScript",
+          "createPlaylist",
+          "escapeAppleScriptString",
+          "fail",
+          "formatArtworkUrl",
+          "formatAudioQualityLabel",
+          "getDeveloperToken",
+          "getStorefront",
+          "home",
+          "isLiked",
+          "like",
+          "liked",
+          "lyrics",
+          "mapAlbum",
+          "mapArtist",
+          "mapPlaylist",
+          "mapTrack",
+          "openInAppleMusic",
+          "parseAppleTTML",
+          "parseAudioQualitySetting",
+          "parseTtmlTimestamp",
+          "played",
+          "playlist",
+          "playlists",
+          "readMusicAppAudioQuality",
+          "recent",
+          "remoteDevices",
+          "remotePause",
+          "remotePlay",
+          "remoteResume",
+          "remoteSeek",
+          "remoteState",
+          "remoteUse",
+          "remoteVolume",
+          "resetRemoteSession",
+          "saveAlbum",
+          "savedAlbums",
+          "search",
+          "setSetting",
+          "signIn",
+          "signOut",
+          "stationNext",
+          "stations",
+          "stream",
+          "suggest",
+          "syncMusicAppAudioQuality",
+          "toMusicAppUrl"
+        ],
+        "checkedAt": "2026-11-07T05:39:17Z"
       }
     },
     {
@@ -63,6 +148,40 @@
           "/opt/homebrew/bin/ffmpeg",
           "/usr/local/bin/ffmpeg"
         ]
+      },
+      "health": {
+        "status": "ok",
+        "exports": [
+          "account",
+          "addToPlaylist",
+          "album",
+          "artist",
+          "browse",
+          "comments",
+          "createPlaylist",
+          "followArtist",
+          "home",
+          "isLiked",
+          "like",
+          "likeComment",
+          "liked",
+          "lyrics",
+          "played",
+          "playlist",
+          "playlists",
+          "postComment",
+          "recent",
+          "removeFromPlaylist",
+          "renamePlaylist",
+          "search",
+          "signIn",
+          "signOut",
+          "stationNext",
+          "stations",
+          "stream",
+          "suggest"
+        ],
+        "checkedAt": "2026-11-07T05:39:17Z"
       }
     },
     {
@@ -77,6 +196,40 @@
           "bd-api.kuwo.cn",
           "mlyric.kuwo.cn"
         ]
+      },
+      "health": {
+        "status": "ok",
+        "exports": [
+          "account",
+          "addToPlaylist",
+          "album",
+          "artist",
+          "browse",
+          "comments",
+          "createPlaylist",
+          "deletePlaylist",
+          "followArtist",
+          "home",
+          "isLiked",
+          "like",
+          "likeComment",
+          "liked",
+          "lyrics",
+          "playlist",
+          "playlists",
+          "removeFromPlaylist",
+          "renamePlaylist",
+          "saveAlbum",
+          "savePlaylist",
+          "search",
+          "signIn",
+          "signOut",
+          "stationNext",
+          "stations",
+          "stream",
+          "suggest"
+        ],
+        "checkedAt": "2026-11-07T05:39:19Z"
       }
     },
     {
@@ -104,6 +257,26 @@
           "*.szbdyd.com",
           "*.biliapi.net"
         ]
+      },
+      "sha256": "4d52f2a815cdf9cc91d45c8badba6c4d6a8d1047cf5aadb954e3fdbc3f0ad994",
+      "health": {
+        "status": "ok",
+        "exports": [
+          "addToPlaylist",
+          "album",
+          "browse",
+          "createPlaylist",
+          "deletePlaylist",
+          "lyrics",
+          "movePlaylistTrack",
+          "playlist",
+          "playlists",
+          "removeFromPlaylist",
+          "renamePlaylist",
+          "search",
+          "stream"
+        ],
+        "checkedAt": "2026-11-07T05:39:26Z"
       }
     },
     {
@@ -117,6 +290,36 @@
         "network": [
           "*"
         ]
+      },
+      "sha256": "cacb9b4e4ca9fb94b2db55b1c74ff78a9a369a65da7f7206f7717942b25593f1",
+      "health": {
+        "status": "ok",
+        "exports": [
+          "account",
+          "addToPlaylist",
+          "album",
+          "artist",
+          "browse",
+          "createPlaylist",
+          "deletePlaylist",
+          "home",
+          "isLiked",
+          "like",
+          "liked",
+          "lyrics",
+          "playlist",
+          "playlists",
+          "recent",
+          "removeFromPlaylist",
+          "renamePlaylist",
+          "search",
+          "setSetting",
+          "signIn",
+          "signOut",
+          "stream",
+          "suggest"
+        ],
+        "checkedAt": "2026-11-07T05:39:27Z"
       }
     },
     {
@@ -134,6 +337,26 @@
           "expendablekmr.kugou.com",
           "openapi.kugou.com"
         ]
+      },
+      "sha256": "9bcddb6cda11070ddd42e156dea71271125ec379cf8a52db3b3fb94a78aed1a4",
+      "health": {
+        "status": "ok",
+        "exports": [
+          "account",
+          "album",
+          "artist",
+          "browse",
+          "home",
+          "lyrics",
+          "playlist",
+          "playlists",
+          "search",
+          "signIn",
+          "signOut",
+          "stream",
+          "suggest"
+        ],
+        "checkedAt": "2026-11-07T05:39:23Z"
       }
     },
     {
@@ -154,6 +377,39 @@
           "userservice.kugou.com",
           "mcloudservice.kugou.com"
         ]
+      },
+      "health": {
+        "status": "ok",
+        "exports": [
+          "account",
+          "addToPlaylist",
+          "album",
+          "artist",
+          "browse",
+          "comments",
+          "createPlaylist",
+          "deletePlaylist",
+          "home",
+          "isLiked",
+          "like",
+          "liked",
+          "lyrics",
+          "played",
+          "playlist",
+          "playlists",
+          "recent",
+          "removeFromPlaylist",
+          "renamePlaylist",
+          "savePlaylist",
+          "search",
+          "signIn",
+          "signOut",
+          "stationNext",
+          "stations",
+          "stream",
+          "suggest"
+        ],
+        "checkedAt": "2026-11-07T05:39:21Z"
       }
     },
     {
@@ -171,6 +427,27 @@
           "raw.githubusercontent.com",
           "lrclib.net"
         ]
+      },
+      "health": {
+        "status": "ok",
+        "exports": [
+          "album",
+          "artist",
+          "browse",
+          "home",
+          "isLiked",
+          "like",
+          "liked",
+          "lyrics",
+          "played",
+          "recent",
+          "search",
+          "stationNext",
+          "stations",
+          "stream",
+          "suggest"
+        ],
+        "checkedAt": "2026-11-07T05:39:22Z"
       }
     },
     {
@@ -187,6 +464,28 @@
           "cdn2.indie.cn",
           "music.163.com"
         ]
+      },
+      "health": {
+        "status": "ok",
+        "exports": [
+          "account",
+          "browse",
+          "home",
+          "isLiked",
+          "like",
+          "liked",
+          "lyrics",
+          "playlist",
+          "savePlaylist",
+          "search",
+          "signIn",
+          "signOut",
+          "stationNext",
+          "stations",
+          "stream",
+          "suggest"
+        ],
+        "checkedAt": "2026-11-07T05:39:24Z"
       }
     },
     {
@@ -215,6 +514,89 @@
           "/usr/local/bin/ffmpeg",
           "/usr/local/bin/yt-dlp"
         ]
+      },
+      "health": {
+        "status": "ok",
+        "exports": [
+          "account",
+          "album",
+          "artist",
+          "browse",
+          "followArtist",
+          "home",
+          "isLiked",
+          "like",
+          "liked",
+          "lyrics",
+          "played",
+          "playlist",
+          "playlists",
+          "saveAlbum",
+          "savePlaylist",
+          "savedAlbums",
+          "search",
+          "setSetting",
+          "signIn",
+          "signOut",
+          "stationNext",
+          "stations",
+          "stream"
+        ],
+        "checkedAt": "2026-11-07T05:39:24Z"
+      }
+    },
+    {
+      "id": "navidrome",
+      "name": "Navidrome",
+      "version": "1.0.1",
+      "repo": "bxb100/mygo-music-navidrome-plugin",
+      "main": "index.js",
+      "minAppVersion": "0.1.8",
+      "permissions": {
+        "network": [
+          "*"
+        ],
+        "process": [
+          "ffmpeg",
+          "/opt/homebrew/bin/ffmpeg",
+          "/usr/local/bin/ffmpeg",
+          "/opt/local/bin/ffmpeg"
+        ]
+      },
+      "health": {
+        "status": "ok",
+        "exports": [
+          "account",
+          "addToPlaylist",
+          "album",
+          "artist",
+          "browse",
+          "createPlaylist",
+          "deletePlaylist",
+          "home",
+          "isLiked",
+          "like",
+          "liked",
+          "lyrics",
+          "movePlaylistTrack",
+          "played",
+          "playlist",
+          "playlists",
+          "recent",
+          "removeFromPlaylist",
+          "renamePlaylist",
+          "saveAlbum",
+          "savedAlbums",
+          "search",
+          "setSetting",
+          "signIn",
+          "signOut",
+          "stationNext",
+          "stations",
+          "stream",
+          "suggest"
+        ],
+        "checkedAt": "2026-11-07T05:39:21Z"
       }
     },
     {
@@ -228,6 +610,49 @@
           "music.163.com",
           "interface.music.163.com"
         ]
+      },
+      "sha256": "2ce3839e8e701d3a061af74ed6f064854c586d6a5f26ab20c56bc59a5b612665",
+      "health": {
+        "status": "ok",
+        "exports": [
+          "account",
+          "addToPlaylist",
+          "album",
+          "artist",
+          "browse",
+          "comments",
+          "createPlaylist",
+          "deletePlaylist",
+          "followArtist",
+          "home",
+          "isLiked",
+          "like",
+          "likeComment",
+          "liked",
+          "lyrics",
+          "movePlaylistTrack",
+          "played",
+          "playlist",
+          "playlists",
+          "postComment",
+          "recent",
+          "removeFromPlaylist",
+          "renamePlaylist",
+          "saveAlbum",
+          "savePlaylist",
+          "savedAlbums",
+          "search",
+          "show",
+          "shows",
+          "signIn",
+          "signOut",
+          "stationNext",
+          "stations",
+          "stream",
+          "subscribeShow",
+          "suggest"
+        ],
+        "checkedAt": "2026-11-07T05:39:16Z"
       }
     },
     {
@@ -242,6 +667,51 @@
           "music.163.com",
           "interfacepc.music.163.com"
         ]
+      },
+      "sha256": "baa7e8471eb16bf3747f96867f0490622352f8b715a26062b2fa948bc35d8287",
+      "health": {
+        "status": "ok",
+        "exports": [
+          "account",
+          "addToPlaylist",
+          "album",
+          "artist",
+          "browse",
+          "comments",
+          "createPlaylist",
+          "deletePlaylist",
+          "followArtist",
+          "home",
+          "isLiked",
+          "like",
+          "likeComment",
+          "likeEpisode",
+          "liked",
+          "lyrics",
+          "movePlaylistTrack",
+          "played",
+          "playlist",
+          "playlists",
+          "postComment",
+          "recent",
+          "removeFromPlaylist",
+          "renamePlaylist",
+          "saveAlbum",
+          "savePlaylist",
+          "savedAlbums",
+          "search",
+          "setSetting",
+          "show",
+          "shows",
+          "signIn",
+          "signOut",
+          "stationNext",
+          "stations",
+          "stream",
+          "subscribeShow",
+          "suggest"
+        ],
+        "checkedAt": "2026-11-07T05:39:16Z"
       }
     },
     {
@@ -256,6 +726,50 @@
           "music.163.com",
           "interfacepc.music.163.com"
         ]
+      },
+      "health": {
+        "status": "ok",
+        "exports": [
+          "account",
+          "addToPlaylist",
+          "album",
+          "artist",
+          "browse",
+          "comments",
+          "createPlaylist",
+          "deletePlaylist",
+          "followArtist",
+          "home",
+          "isLiked",
+          "like",
+          "likeComment",
+          "likeEpisode",
+          "liked",
+          "lyrics",
+          "movePlaylistTrack",
+          "played",
+          "playlist",
+          "playlists",
+          "postComment",
+          "recent",
+          "removeFromPlaylist",
+          "renamePlaylist",
+          "saveAlbum",
+          "savePlaylist",
+          "savedAlbums",
+          "search",
+          "setSetting",
+          "show",
+          "shows",
+          "signIn",
+          "signOut",
+          "stationNext",
+          "stations",
+          "stream",
+          "subscribeShow",
+          "suggest"
+        ],
+        "checkedAt": "2026-11-07T05:39:16Z"
       }
     },
     {
@@ -270,6 +784,45 @@
           "music.163.com",
           "interfacepc.music.163.com"
         ]
+      },
+      "sha256": "3eb6267b2aa80be925b02f33e4cb03d26b76ebcd4cee190809a62d5799640277",
+      "health": {
+        "status": "ok",
+        "exports": [
+          "account",
+          "addToPlaylist",
+          "album",
+          "artist",
+          "browse",
+          "buildLyrics",
+          "comments",
+          "createPlaylist",
+          "deletePlaylist",
+          "followArtist",
+          "home",
+          "isLiked",
+          "like",
+          "likeComment",
+          "likeEpisode",
+          "liked",
+          "lyrics",
+          "playlist",
+          "playlists",
+          "recent",
+          "removeFromPlaylist",
+          "renamePlaylist",
+          "search",
+          "show",
+          "shows",
+          "signIn",
+          "signOut",
+          "stationNext",
+          "stations",
+          "stream",
+          "subscribeShow",
+          "suggest"
+        ],
+        "checkedAt": "2026-11-07T05:39:27Z"
       }
     },
     {
@@ -284,6 +837,49 @@
           "interfacepc.music.163.com",
           "*.127.net"
         ]
+      },
+      "health": {
+        "status": "ok",
+        "exports": [
+          "account",
+          "addToPlaylist",
+          "album",
+          "artist",
+          "browse",
+          "comments",
+          "createPlaylist",
+          "deletePlaylist",
+          "followArtist",
+          "home",
+          "isLiked",
+          "like",
+          "likeComment",
+          "liked",
+          "lyrics",
+          "movePlaylistTrack",
+          "played",
+          "playlist",
+          "playlists",
+          "postComment",
+          "recent",
+          "removeFromPlaylist",
+          "renamePlaylist",
+          "saveAlbum",
+          "savePlaylist",
+          "savedAlbums",
+          "search",
+          "show",
+          "shows",
+          "signIn",
+          "signOut",
+          "stationNext",
+          "stations",
+          "stream",
+          "subscribeShow",
+          "suggest",
+          "upload"
+        ],
+        "checkedAt": "2026-11-07T05:39:19Z"
       }
     },
     {
@@ -307,6 +903,40 @@
           "/opt/homebrew/bin/ffmpeg",
           "/usr/local/bin/ffmpeg"
         ]
+      },
+      "sha256": "f12cd65f87706f9116d6bee46558b21ca78f4ce785c150110df820f56a3f2dbc",
+      "health": {
+        "status": "ok",
+        "exports": [
+          "account",
+          "addToPlaylist",
+          "browse",
+          "comments",
+          "createPlaylist",
+          "deletePlaylist",
+          "home",
+          "isLiked",
+          "like",
+          "liked",
+          "lyrics",
+          "played",
+          "playlist",
+          "playlists",
+          "postComment",
+          "recent",
+          "removeFromPlaylist",
+          "renamePlaylist",
+          "saveAlbum",
+          "savePlaylist",
+          "savedAlbums",
+          "search",
+          "signIn",
+          "signOut",
+          "stationNext",
+          "stations",
+          "stream"
+        ],
+        "checkedAt": "2026-11-07T05:39:17Z"
       }
     },
     {
@@ -320,20 +950,87 @@
         "process": [
           "bin/node-*"
         ]
+      },
+      "sha256": "e701662484f67922a3b83ad29cbbd065872825822ad446339926b57fef34a79c",
+      "health": {
+        "status": "ok",
+        "exports": [
+          "account",
+          "browse",
+          "home",
+          "lyrics",
+          "playlist",
+          "playlists",
+          "search",
+          "signIn",
+          "signOut",
+          "stationNext",
+          "stations",
+          "stream"
+        ],
+        "checkedAt": "2026-11-07T05:39:24Z"
       }
     },
     {
       "id": "qqmusic",
       "name": "QQ Music",
-      "version": "0.2.4",
-      "repo": "dddaniel1/mygo-plugin-qqmusic",
-      "main": "index.js",
+      "version": "0.3.0",
+      "repo": "Amamiya23/mygo-music-qq-plugin",
+      "main": "dist/index.js",
       "minAppVersion": "0.1.8",
       "permissions": {
         "network": [
-          "*.qq.com",
-          "*.gtimg.cn"
+          "u.y.qq.com",
+          "c.y.qq.com",
+          "c6.y.qq.com",
+          "y.qq.com",
+          "xui.ptlogin2.qq.com",
+          "ssl.ptlogin2.graph.qq.com",
+          "graph.qq.com",
+          "api.tencentmusic.com",
+          "open.weixin.qq.com",
+          "lp.open.weixin.qq.com"
         ]
+      },
+      "health": {
+        "status": "ok",
+        "exports": [
+          "account",
+          "addToPlaylist",
+          "album",
+          "artist",
+          "browse",
+          "comments",
+          "createBrowse",
+          "createLibrary",
+          "createPlaylist",
+          "decodeQRC",
+          "deletePlaylist",
+          "home",
+          "isLiked",
+          "like",
+          "liked",
+          "lyrics",
+          "parseQRC",
+          "playlist",
+          "playlists",
+          "qqAuthContext",
+          "qqAuthRpc",
+          "qqFinishSignIn",
+          "qqReadSession",
+          "removeFromPlaylist",
+          "renamePlaylist",
+          "saveAlbum",
+          "savedAlbums",
+          "search",
+          "signIn",
+          "signOut",
+          "stationNext",
+          "stations",
+          "stream",
+          "suggest"
+        ],
+        "checkedAt": "2026-11-07T05:39:16Z"
       }
     },
     {
@@ -352,6 +1049,47 @@
           "/opt/homebrew/bin/librespot",
           "/usr/local/bin/librespot"
         ]
+      },
+      "health": {
+        "status": "ok",
+        "exports": [
+          "account",
+          "addToPlaylist",
+          "album",
+          "artist",
+          "createPlaylist",
+          "deletePlaylist",
+          "home",
+          "isLiked",
+          "like",
+          "liked",
+          "lyrics",
+          "movePlaylistTrack",
+          "playlist",
+          "playlists",
+          "recent",
+          "remoteDevices",
+          "remotePause",
+          "remotePlay",
+          "remoteResume",
+          "remoteSeek",
+          "remoteState",
+          "remoteUse",
+          "remoteVolume",
+          "removeFromPlaylist",
+          "renamePlaylist",
+          "saveAlbum",
+          "savePlaylist",
+          "savedAlbums",
+          "search",
+          "setSetting",
+          "show",
+          "shows",
+          "signIn",
+          "signOut",
+          "subscribeShow"
+        ],
+        "checkedAt": "2026-11-07T05:39:25Z"
       }
     },
     {
@@ -365,6 +1103,39 @@
         "network": [
           "*"
         ]
+      },
+      "sha256": "e427d48ce7c80cfa8a3d720f1af31725d01545095942d70ad5d94c610060f1e7",
+      "health": {
+        "status": "ok",
+        "exports": [
+          "account",
+          "addToPlaylist",
+          "album",
+          "artist",
+          "browse",
+          "createPlaylist",
+          "deletePlaylist",
+          "followArtist",
+          "home",
+          "isLiked",
+          "like",
+          "liked",
+          "lyrics",
+          "movePlaylistTrack",
+          "played",
+          "playlist",
+          "playlists",
+          "removeFromPlaylist",
+          "renamePlaylist",
+          "saveAlbum",
+          "savedAlbums",
+          "search",
+          "setSetting",
+          "signIn",
+          "signOut",
+          "stream"
+        ],
+        "checkedAt": "2026-11-07T05:39:19Z"
       }
     },
     {
@@ -388,6 +1159,32 @@
           "/usr/local/bin/ffmpeg",
           "/usr/local/bin/yt-dlp"
         ]
+      },
+      "health": {
+        "status": "ok",
+        "exports": [
+          "account",
+          "album",
+          "artist",
+          "browse",
+          "home",
+          "isLiked",
+          "like",
+          "liked",
+          "lyrics",
+          "played",
+          "playlist",
+          "playlists",
+          "recent",
+          "search",
+          "signIn",
+          "signOut",
+          "stationNext",
+          "stations",
+          "stream",
+          "suggest"
+        ],
+        "checkedAt": "2026-11-07T05:39:22Z"
       }
     },
     {
@@ -401,6 +1198,42 @@
         "network": [
           "*"
         ]
+      },
+      "health": {
+        "status": "ok",
+        "exports": [
+          "account",
+          "addToPlaylist",
+          "album",
+          "artist",
+          "browse",
+          "comments",
+          "createPlaylist",
+          "deletePlaylist",
+          "followArtist",
+          "home",
+          "isLiked",
+          "like",
+          "liked",
+          "lyrics",
+          "movePlaylistTrack",
+          "played",
+          "playlist",
+          "playlists",
+          "recent",
+          "removeFromPlaylist",
+          "renamePlaylist",
+          "saveAlbum",
+          "savePlaylist",
+          "savedAlbums",
+          "search",
+          "setSetting",
+          "signIn",
+          "signOut",
+          "stream",
+          "suggest"
+        ],
+        "checkedAt": "2026-11-07T05:39:21Z"
       }
     }
   ]
