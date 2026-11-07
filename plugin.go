@@ -67,6 +67,10 @@ type Options struct {
 	// HTTPClient sends fetch's requests. Nil means an http.Client with a
 	// ten minute timeout.
 	HTTPClient *http.Client
+	// Allowed, when set, decides which network hosts a plugin may reach.
+	// The manifest still lists what it asks for; this is the listener's
+	// answer, host by host. Nil allows every host the manifest lists.
+	Allowed func(pluginID, host string) bool
 }
 
 func (o *Options) defaults() {
@@ -324,18 +328,20 @@ func (p *Plugin) start() (*vm, error) {
 // webOptions are what fetch may reach: nothing without the network
 // permission, and only the hosts it lists. The caller holds p.mu.
 func (p *Plugin) webOptions() webapi.Options {
-	hosts := p.manifest.Permissions.Network
+	var hosts []string
+	for _, h := range p.manifest.Permissions.Network {
+		if p.opts.Allowed != nil && !p.opts.Allowed(p.manifest.ID, h) {
+			continue
+		}
+		if h == "*" {
+			return webapi.Options{Client: p.opts.HTTPClient}
+		}
+		hosts = append(hosts, h)
+	}
 	if len(hosts) == 0 {
 		return webapi.Options{}
 	}
-	opts := webapi.Options{Client: p.opts.HTTPClient}
-	for _, h := range hosts {
-		if h == "*" {
-			return opts
-		}
-	}
-	opts.Allow = webapi.AllowHosts(hosts...)
-	return opts
+	return webapi.Options{Client: p.opts.HTTPClient, Allow: webapi.AllowHosts(hosts...)}
 }
 
 // helperBody calls an export and answers through ok or bad, whether it returns

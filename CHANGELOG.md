@@ -12,6 +12,8 @@ mygo-plugin follows Semantic Versioning. Before 1.0, a minor version may change 
 - `mygo-plugin dev`: rechecks a plugin whenever its files change.
 - `HostTypeScript`, `spec/host.d.ts` and the `plugintest` package for plugin authors.
 - An experimental host-rendered page schema: `Page`, `Section`, `Item`, `Plugin.Browse`, and `spec/page.schema.json`.
+- `Options.Allowed`, so the app decides which network hosts a plugin may reach.
+- `examples/host`: a reference native MyGo host with consent, search, browse and playback.
 
 ## 0.2.0
 

@@ -380,3 +380,25 @@ func TestTopLevelStorage(t *testing.T) {
 		t.Fatal("module evaluation deadlocked on host.storage.get")
 	}
 }
+
+func TestAllowedHosts(t *testing.T) {
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Write([]byte("ok"))
+	}))
+	defer srv.Close()
+
+	denied := loadHello(t, Options{Allowed: func(string, string) bool { return false }})
+	if err := denied.Call("fetchText", map[string]string{"url": srv.URL}, nil); err == nil {
+		t.Fatal("fetch reached a host the listener didn't allow")
+	}
+	denied.Close()
+
+	allowed := loadHello(t, Options{Allowed: func(string, string) bool { return true }})
+	var out string
+	if err := allowed.Call("fetchText", map[string]string{"url": srv.URL}, &out); err != nil {
+		t.Fatal(err)
+	}
+	if out != "ok" {
+		t.Errorf("fetch = %q", out)
+	}
+}

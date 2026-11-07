@@ -109,6 +109,7 @@ Icons are names in the host's icon set (`calendar`, `star`, `playlist`, ...), no
 - Empty `network`: `fetch` has no network
 - `example.com` matches exactly; `*.example.com` matches subdomains; `*` allows everything
 - The allowlist is checked on every request, redirects included
+- The app can narrow it further with `Options.Allowed`, asked host by host when a runtime starts
 - `process` is a declaration, not a grant
 
 ## Registry
@@ -182,6 +183,10 @@ MYGO_PLUGIN_REAL=../mygo-music-netease MYGO_PLUGIN_NETWORK=1 go test -run TestRe
 - A real implementation of the process permission (allowlist plus a grant UI)
 - Generate app-specific host types from a Go contract
 - A standard icon name table with cross-platform fallbacks
+
+## Reference host
+
+[`examples/host`](examples/host) is a small native MyGo app that runs plugins with this module: a sidebar from `navigation`, `browse` and `search` rendered as native rows, a network consent card, and playback that downloads the stream in Go. It is the shape to copy for an app that hosts plugins, not a product.
 
 ## Versioning
 

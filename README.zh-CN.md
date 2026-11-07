@@ -109,6 +109,7 @@ MyGo 已经区分可信页面和不可信页面：需要 HTML 的插件 UI 可�
 - `network` 为空：`fetch` 不接网络
 - `example.com` 精确匹配；`*.example.com` 匹配子域；`*` 全放行
 - allowlist 在每次请求（含重定向）时检查
+- 应用可以用 `Options.Allowed` 再收窄，runtime 启动时逐个 host 询问
 - `process` 是声明，不是自动授权
 
 ## 注册表
@@ -182,6 +183,10 @@ MYGO_PLUGIN_REAL=../mygo-music-netease MYGO_PLUGIN_NETWORK=1 go test -run TestRe
 - 进程权限的真实实现（allowlist + 授权 UI）
 - 从应用的 Go 契约生成应用专属的宿主类型
 - 标准图标名表与跨平台回退
+
+## 参考宿主
+
+[`examples/host`](examples/host) 是一个用本模块跑插件的小型 MyGo 原生应用：侧栏从 `navigation` 生成，`browse` 和 `search` 用原生行渲染，首次使用有网络同意卡，播放由 Go 下载音频流。它是“应用如何托管插件”的样板，不是成品。
 
 ## 版本
 
