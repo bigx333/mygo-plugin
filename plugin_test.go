@@ -93,6 +93,30 @@ func TestThrownCode(t *testing.T) {
 	}
 }
 
+func TestHostCallbacks(t *testing.T) {
+	var got SignInPrompt
+	p := loadHello(t, Options{Host: Host{
+		Language:     func() string { return "zh-CN" },
+		SignInPrompt: func(_ string, prompt SignInPrompt) { got = prompt },
+	}})
+	var lang string
+	if err := p.Call("prompt", nil, &lang); err != nil {
+		t.Fatal(err)
+	}
+	if lang != "zh-CN" {
+		t.Errorf("language = %q", lang)
+	}
+	if got.QR != "QR" || got.Text != "scan" {
+		t.Errorf("prompt = %+v", got)
+	}
+}
+
+func TestDataDirRequired(t *testing.T) {
+	if _, err := Load("testdata/hello", Options{}); err == nil {
+		t.Fatal("loaded without a data dir")
+	}
+}
+
 func TestCrypto(t *testing.T) {
 	p := loadHello(t, Options{})
 	var out struct{ MD5, AES string }
@@ -179,7 +203,7 @@ func TestInspect(t *testing.T) {
 	if m.ID != "hello" {
 		t.Errorf("id = %s", m.ID)
 	}
-	want := "add,claim,fail,fetchText,hashes,hello,later,spin,store,stored"
+	want := "add,claim,fail,fetchText,hashes,hello,later,prompt,spin,store,stored"
 	if strings.Join(exports, ",") != want {
 		t.Errorf("exports = %v", exports)
 	}

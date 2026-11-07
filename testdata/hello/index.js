@@ -33,6 +33,11 @@ export async function fetchText({ url }) {
   return await response.text();
 }
 
+export function prompt() {
+  host.signInPrompt({ qr: "QR", text: "scan" });
+  return host.language();
+}
+
 export function fail() {
   const error = new Error("sign in please");
   error.code = "signIn";

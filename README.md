@@ -51,6 +51,8 @@ var result struct {
 err = p.Call("search", map[string]any{"query": "周杰伦", "kind": "tracks", "offset": 0}, &result)
 ```
 
+`Options.DataDir` 必须由应用指定，并且按应用区分：同一个插件装进两个应用，不能共享 session 和 storage。
+
 `Call` 的约定由应用定，不在这层：插件导出什么，应用就调什么。MyGo Music 的来源契约（`search` / `browse` / `stream` / `lyrics` / `signIn` …）是其中一个已存在的契约，现有插件直接可用。
 
 ## 原生的边界
