@@ -2,6 +2,21 @@
 
 mygo-plugin follows Semantic Versioning. Before 1.0, a minor version adds features and may change the API; a patch version fixes bugs. Releases are cut at milestones, not per change; see [RELEASING.md](RELEASING.md). The manifest and the host API freeze at 1.0.
 
+## 0.6.1-glitched.1
+
+Fork of upstream `4cef697` for Glitched, so it includes the Unreleased changes below. The Fork section of the README lists each divergence.
+
+### Added
+
+- `Options.Functions`, `Function`, `host.call(name, args)` and `host.functions()`: a host offers its own async functions. Each call runs on its own goroutine with a `ctx` that ends when the runtime closes; errors reject with their text and `code`.
+- `Options.Prelude`: a classic script each runtime runs after the host global and before the module.
+- `Options.LoadTimeout`: the prelude and the module's top level are interrupted past it, the start fails naming the limit, and the next call tries again.
+- `HostTypeScriptVersion` 3: `spec/host.d.ts` declares `host.call` and `host.functions`.
+
+### Fixed
+
+- `Close` no longer waits for a module whose top level never ends; it ends the start in progress.
+
 ## Unreleased
 
 ### Added

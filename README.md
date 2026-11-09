@@ -10,6 +10,18 @@ This is not another WebView plugin container. A plugin gets no DOM and cannot dr
 
 The `plugin.json` shape is the one MyGo Music uses, so existing plugins, such as the NetEase one, load unchanged.
 
+## Fork
+
+This is [bigx333/mygo-plugin](https://github.com/bigx333/mygo-plugin), a fork of [yxxbc/mygo-plugin](https://github.com/yxxbc/mygo-plugin) for Glitched, a Go desktop app that hosts plugins with it. The `glitched` branch starts at upstream `4cef697` and adds only what Glitched cannot do without. Each change is meant to go upstream. The module path stays `github.com/yxxbc/mygo-plugin`, so a host uses the fork through a `replace` directive.
+
+| Change | Why |
+| --- | --- |
+| `Options.Functions` and `host.call(name, args)` / `host.functions()` | Upstream gives a host no way to add its own functions. Glitched's plugins await host work: an allowlisted program, a per-plugin SQLite database, app services. A function runs on its own goroutine, gets a `ctx` that ends when the runtime closes, and answers as JSON. |
+| `Options.Prelude` | A host defines helper globals, such as a typed wrapper over `host.call`, once for every plugin, before the module loads. |
+| `Options.LoadTimeout`, and `Close` ends a start in progress | Upstream runs a module's top level with no time limit while it holds the plugin's lock, so a top level that never ends blocks every later call and `Close` for good. Now the prelude and top level are interrupted after `LoadTimeout`, the start fails with an error that names the limit, and the next call starts again. |
+
+`HostTypeScriptVersion` is 3 and `spec/host.d.ts` declares `host.call` and `host.functions`. The MIT license and the credits below are upstream's.
+
 ## Why a separate project
 
 MyGo's own `mygo.Plugin` is a **compile-time** capability module: a Go service plus an npm package, registered with `mygo.Use`, callable only from trusted pages. It suits official capabilities (fetch, sqlite, terminal), not installable third-party plugins.
