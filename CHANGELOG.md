@@ -2,6 +2,12 @@
 
 mygo-plugin follows Semantic Versioning. Before 1.0, a minor version adds features and may change the API; a patch version fixes bugs. Releases are cut at milestones, not per change; see [RELEASING.md](RELEASING.md). The manifest and the host API freeze at 1.0.
 
+## 0.6.1-glitched.2
+
+### Added
+
+- `Options.Main`: the module to load in place of the manifest's main, a file in the plugin's folder.
+
 ## 0.6.1-glitched.1
 
 Fork of upstream `4cef697` for Glitched, so it includes the Unreleased changes below. The Fork section of the README lists each divergence.

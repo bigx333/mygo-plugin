@@ -94,6 +94,10 @@ type Options struct {
 	// LoadTimeout is how long the prelude and the module's top level may run
 	// as a runtime starts. Zero means CallTimeout.
 	LoadTimeout time.Duration
+	// Main, when set, is the module to load in place of the manifest's
+	// main, relative to the plugin's folder: a host runs a plugin's second
+	// module (a headless service) as a runtime of its own.
+	Main string
 }
 
 // Function is a host function a plugin calls through host.call. args is the
@@ -162,16 +166,23 @@ func Load(dir string, opts Options) (*Plugin, error) {
 			return nil, &NeedsNewerApp{Plugin: m.Name, Version: m.MinAppVersion}
 		}
 	}
-	main := filepath.Join(dir, filepath.FromSlash(m.Main))
+	name := m.Main
+	if opts.Main != "" {
+		if !filepath.IsLocal(filepath.FromSlash(opts.Main)) {
+			return nil, fmt.Errorf("plugin: Options.Main %q is not a file in the plugin's folder", opts.Main)
+		}
+		name = opts.Main
+	}
+	main := filepath.Join(dir, filepath.FromSlash(name))
 	source, err := os.ReadFile(main)
 	if err != nil {
 		return nil, err
 	}
 	compile := moejs.Compile
-	if strings.HasSuffix(m.Main, ".ts") {
+	if strings.HasSuffix(name, ".ts") {
 		compile = moejs.CompileTS
 	}
-	mod, err := compile(m.Main, string(source))
+	mod, err := compile(name, string(source))
 	if err != nil {
 		return nil, fmt.Errorf("%s: %w", dir, err)
 	}
