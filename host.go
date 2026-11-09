@@ -64,6 +64,9 @@ func (p *Plugin) installHost(v *vm) error {
 		// "clipboard". Anything not offered is false, not an error.
 		"capability": moejs.NativeFunc(func(_ *moejs.Realm, _ moejs.Value, args []moejs.Value) (moejs.Value, error) {
 			name := moejs.Arg(args, 0).String()
+			if p.opts.Capability != nil {
+				return moejs.Bool(p.opts.Capability(p.manifest.ID, name)), nil
+			}
 			for _, c := range p.opts.Capabilities {
 				if c == name {
 					return moejs.Bool(true), nil

@@ -19,6 +19,9 @@ This is [bigx333/mygo-plugin](https://github.com/bigx333/mygo-plugin), a fork of
 | `Options.Functions` and `host.call(name, args)` / `host.functions()` | Upstream gives a host no way to add its own functions. Glitched's plugins await host work: an allowlisted program, a per-plugin SQLite database, app services. A function runs on its own goroutine, gets a `ctx` that ends when the runtime closes, and answers as JSON. |
 | `Options.Prelude` | A host defines helper globals, such as a typed wrapper over `host.call`, once for every plugin, before the module loads. |
 | A call fails as its runtime closes | Upstream leaves a call that was waiting on its answer as `Close` ended the runtime to its whole timeout: a host that reloads a plugin stalls its callers. |
+| `Plugin.Shutdown` | Upstream's `Close` lets the next call start the runtime again, so a host that replaces a plugin can't stop a call already on its way from starting one no one will close. |
+| `Options.IdleTimeout` | A host that runs many plugins in the background stops the idle ones; the runtime knows when calls run, a host has to guess. |
+| `Options.Capability`, and `Allowed` asked on each request | Upstream answers both from what they were as the runtime started, so a host must restart a plugin, losing what it holds, when the user grants or takes back access. |
 | `Options.Main` | A host loads a plugin's second module, such as a headless service, as a runtime of its own. It must be a file in the plugin's folder. |
 | `Options.LoadTimeout`, and `Close` ends a start in progress | Upstream runs a module's top level with no time limit while it holds the plugin's lock, so a top level that never ends blocks every later call and `Close` for good. Now the prelude and top level are interrupted after `LoadTimeout`, the start fails with an error that names the limit, and the next call starts again. |
 

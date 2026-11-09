@@ -2,6 +2,18 @@
 
 mygo-plugin follows Semantic Versioning. Before 1.0, a minor version adds features and may change the API; a patch version fixes bugs. Releases are cut at milestones, not per change; see [RELEASING.md](RELEASING.md). The manifest and the host API freeze at 1.0.
 
+## 0.6.1-glitched.4
+
+### Added
+
+- `Plugin.Shutdown`: stops a plugin for good; later calls fail with `ErrClosed`.
+- `Options.IdleTimeout`: stops a runtime nothing called for that long.
+- `Options.Capability`: answers `host.capability` live.
+
+### Changed
+
+- `Options.Allowed` is asked on each request and redirect, with the host it goes to, not as the runtime starts.
+
 ## 0.6.1-glitched.3
 
 ### Fixed

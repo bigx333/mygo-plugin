@@ -71,7 +71,9 @@ type Options struct {
 	HTTPClient *http.Client
 	// Allowed, when set, decides which network hosts a plugin may reach.
 	// The manifest still lists what it asks for; this is the listener's
-	// answer, host by host. Nil allows every host the manifest lists.
+	// answer, asked on each request and redirect with the host it goes
+	// to, so a grant given or taken back holds at once. Nil allows every
+	// host the manifest lists.
 	Allowed func(pluginID, host string) bool
 	// Contract is the app contract this host provides, such as
 	// "mygo-music". Empty loads any plugin, as in development.
@@ -98,6 +100,13 @@ type Options struct {
 	// main, relative to the plugin's folder: a host runs a plugin's second
 	// module (a headless service) as a runtime of its own.
 	Main string
+	// Capability, when set, answers host.capability as the plugin asks,
+	// in place of Capabilities: a grant given or taken back holds at once,
+	// with no restart.
+	Capability func(pluginID, name string) bool
+	// IdleTimeout, when positive, stops the runtime once no call has run
+	// for that long; the next call starts it again.
+	IdleTimeout time.Duration
 }
 
 // Function is a host function a plugin calls through host.call. args is the
@@ -142,6 +151,10 @@ type Plugin struct {
 	loading atomic.Pointer[vm] // the runtime start is loading, for Close to end
 	smu     sync.Mutex         // guards storage, which module evaluation may read
 	storage map[string]json.RawMessage
+
+	shut   atomic.Bool  // Shutdown: no runtime starts again
+	active atomic.Int64 // calls running, for IdleTimeout
+	idle   *time.Timer  // stops an idle runtime; guarded by mu
 }
 
 // Load reads and compiles the plugin in dir, without running it.
@@ -283,6 +296,8 @@ func (p *Plugin) CallWithin(timeout time.Duration, method string, args, out any)
 	if !p.exports[method] {
 		return ErrUnsupported
 	}
+	p.active.Add(1)
+	defer p.callDone()
 	v, err := p.running()
 	if err != nil {
 		return err
@@ -326,6 +341,45 @@ func (p *Plugin) CallWithin(timeout time.Duration, method string, args, out any)
 
 // Close stops the plugin, and a start in progress. It starts again on the next
 // call.
+// ErrClosed is a call of a plugin that was shut down.
+var ErrClosed = errors.New("the plugin was shut down")
+
+// Shutdown stops the plugin for good: what runs fails, and no call starts
+// it again. A host that replaces a plugin shuts the old one down, so that
+// a call already on its way can't start a runtime no one will close.
+func (p *Plugin) Shutdown() {
+	p.shut.Store(true)
+	p.Close()
+}
+
+// callDone ends a call, and with IdleTimeout, arms the stop of a runtime
+// that nothing calls.
+func (p *Plugin) callDone() {
+	if p.active.Add(-1) > 0 || p.opts.IdleTimeout <= 0 {
+		return
+	}
+	p.mu.Lock()
+	defer p.mu.Unlock()
+	if p.idle != nil {
+		p.idle.Stop()
+	}
+	p.idle = time.AfterFunc(p.opts.IdleTimeout, func() {
+		// Under mu, as running is: a call that counted itself first keeps
+		// the runtime; one after starts a new one.
+		p.mu.Lock()
+		v := p.vm
+		if p.active.Load() != 0 {
+			v = nil
+		} else {
+			p.vm = nil
+		}
+		p.mu.Unlock()
+		if v != nil {
+			v.close()
+		}
+	})
+}
+
 func (p *Plugin) Close() {
 	if v := p.loading.Load(); v != nil {
 		v.close()
@@ -363,6 +417,9 @@ func (v *vm) close() {
 func (p *Plugin) running() (*vm, error) {
 	p.mu.Lock()
 	defer p.mu.Unlock()
+	if p.shut.Load() {
+		return nil, ErrClosed
+	}
 	if p.vm != nil {
 		return p.vm, nil
 	}
@@ -446,20 +503,22 @@ func (p *Plugin) evaluate(rt *moejs.Runtime) error {
 // webOptions are what fetch may reach: nothing without the network
 // permission, and only the hosts it lists. The caller holds p.mu.
 func (p *Plugin) webOptions() webapi.Options {
-	var hosts []string
-	for _, h := range p.manifest.Permissions.Network {
-		if p.opts.Allowed != nil && !p.opts.Allowed(p.manifest.ID, h) {
-			continue
-		}
-		if h == "*" {
-			return webapi.Options{Client: p.opts.HTTPClient}
-		}
-		hosts = append(hosts, h)
-	}
+	hosts := p.manifest.Permissions.Network
 	if len(hosts) == 0 {
 		return webapi.Options{}
 	}
-	return webapi.Options{Client: p.opts.HTTPClient, Allow: webapi.AllowHosts(hosts...)}
+	listed := webapi.AllowHosts(hosts...)
+	return webapi.Options{Client: p.opts.HTTPClient, Allow: func(r *http.Request) error {
+		if err := listed(r); err != nil {
+			return err
+		}
+		// The listener's answer as the request goes, not as the runtime
+		// started.
+		if p.opts.Allowed != nil && !p.opts.Allowed(p.manifest.ID, r.URL.Hostname()) {
+			return fmt.Errorf("plugin %s may not reach %s", p.manifest.ID, r.URL.Hostname())
+		}
+		return nil
+	}}
 }
 
 // helperBody calls an export and answers through ok or bad, whether it returns
