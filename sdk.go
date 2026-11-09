@@ -2,13 +2,13 @@ package plugin
 
 // HostTypeScriptVersion is the version of the host global that HostTypeScript
 // describes. The host bumps it when the global changes.
-const HostTypeScriptVersion = 2
+const HostTypeScriptVersion = 3
 
 // HostTypeScript declares the host global that a plugin's TypeScript sees.
 // spec/host.d.ts holds the same bytes for editors; sdk_test.go keeps the two
 // from drifting.
 const HostTypeScript = `// host.d.ts — the host global this host installs, generated for mygo-plugin
-// v2. It lists exactly what a plugin can reach; host.spawn is not available,
+// v3. It lists exactly what a plugin can reach; host.spawn is not available,
 // because this host starts no programs for plugins.
 
 declare const host: {
@@ -31,6 +31,15 @@ declare const host: {
 	openURL(url: string): void;
 	/** Shows what the plugin wants shown while the listener signs in. */
 	signInPrompt(prompt: { qr?: string; text?: string }): void;
+
+	/** The names of the functions this host offers through call. */
+	functions(): string[];
+	/**
+	 * Calls one of this host's own functions with args as JSON, and resolves
+	 * with its JSON answer. It rejects with an Error, with a code when the
+	 * host gives one, and for a name functions() does not list.
+	 */
+	call<T = unknown>(name: string, args?: unknown): Promise<T>;
 
 	/** A JSON key-value store, kept in storage.json in dataDir. */
 	storage: {

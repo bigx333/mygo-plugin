@@ -96,6 +96,8 @@ Icons are names in the host's icon set (`calendar`, `star`, `playlist`, ...), no
 | `host.capability(name)` | Whether this host offers a capability, such as `network` or `clipboard` |
 | `host.openURL(url)` | http/https only |
 | `host.signInPrompt({ qr, text })` | What to show while signing in |
+| `host.call(name, args?)` | A promise of what one of `Options.Functions` answers; it rejects with an `Error`, with `code` when the host's error has a `Code()` |
+| `host.functions()` | The names `host.call` takes |
 | `host.spawn` | Starts no programs in this version; calling it returns an error |
 
 `permissions.process` is parsed but not executed by this host. A host that runs programs should implement it, and keep it deny-by-default.
@@ -186,6 +188,8 @@ Signatures, a registry index and installing straight from a GitHub release are n
 
 - Memory: 256 MiB by default; going over interrupts the runtime, and the next call restarts it
 - Time: 30s per call by default; code stuck in JavaScript is terminated
+- Loading: the prelude and the module's top level get `Options.LoadTimeout`, the call timeout by default; past it the start fails and the next call tries again
+- `host.call`: 16 MiB of JSON arguments per call
 - One runtime per plugin; calls enter that runtime one at a time
 - `import` is not available (a single-file module); bundle first if you need several files
 

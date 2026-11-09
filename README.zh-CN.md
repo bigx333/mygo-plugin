@@ -96,6 +96,8 @@ MyGo 已经区分可信页面和不可信页面：需要 HTML 的插件 UI 可�
 | `host.capability(name)` | 宿主是否提供某项能力，如 `network`、`clipboard` |
 | `host.openURL(url)` | 只允许 http/https |
 | `host.signInPrompt({ qr, text })` | 登录时给宿主显示 |
+| `host.call(name, args?)` | 返回 `Options.Functions` 中某个函数结果的 Promise；失败时以 `Error` 拒绝，宿主错误有 `Code()` 时带 `code` |
+| `host.functions()` | `host.call` 可用的函数名 |
 | `host.spawn` | 本版本不启动进程，调用会报错 |
 
 `permissions.process` 会被解析，但当前宿主不执行；需要起进程的宿主自己实现，并保持 deny-by-default。

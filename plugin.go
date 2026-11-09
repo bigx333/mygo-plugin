@@ -1,6 +1,7 @@
 package plugin
 
 import (
+	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -11,6 +12,7 @@ import (
 	"runtime"
 	"strings"
 	"sync"
+	"sync/atomic"
 	"time"
 
 	"github.com/MoeForge/moejs"
@@ -81,7 +83,25 @@ type Options struct {
 	// here is answered false, and the host decides whether to load the
 	// plugin at all.
 	Capabilities []string
+	// Functions are the host's own async functions, which a plugin calls
+	// with host.call(name, args) and awaits. Each call runs on a goroutine of
+	// its own, never the plugin's loop.
+	Functions map[string]Function
+	// Prelude is a classic script run in each runtime after the host global
+	// is installed and before the module loads, so the host can define helper
+	// globals. Empty runs none.
+	Prelude string
+	// LoadTimeout is how long the prelude and the module's top level may run
+	// as a runtime starts. Zero means CallTimeout.
+	LoadTimeout time.Duration
 }
+
+// Function is a host function a plugin calls through host.call. args is the
+// JSON of the value the plugin passed, null when it passed none. ctx ends
+// when the plugin's runtime closes. The result is sent back as JSON; an
+// error rejects the plugin's promise with its text, and with its code when
+// it has a Code() string method.
+type Function func(ctx context.Context, args json.RawMessage) (any, error)
 
 func (o *Options) defaults() {
 	if o.MemoryLimit <= 0 {
@@ -89,6 +109,9 @@ func (o *Options) defaults() {
 	}
 	if o.CallTimeout <= 0 {
 		o.CallTimeout = DefaultCallTimeout
+	}
+	if o.LoadTimeout <= 0 {
+		o.LoadTimeout = o.CallTimeout
 	}
 	if o.HTTPClient == nil {
 		o.HTTPClient = &http.Client{Timeout: 10 * time.Minute}
@@ -105,13 +128,15 @@ type Plugin struct {
 	dir      string
 	data     string
 	mod      *moejs.Module
+	prelude  *moejs.Script
 	exports  map[string]bool
 	locales  map[string]map[string]string
 	opts     Options
 
 	mu      sync.Mutex // guards vm
 	vm      *vm
-	smu     sync.Mutex // guards storage, which module evaluation may read
+	loading atomic.Pointer[vm] // the runtime start is loading, for Close to end
+	smu     sync.Mutex         // guards storage, which module evaluation may read
 	storage map[string]json.RawMessage
 }
 
@@ -150,11 +175,18 @@ func Load(dir string, opts Options) (*Plugin, error) {
 	if err != nil {
 		return nil, fmt.Errorf("%s: %w", dir, err)
 	}
+	var prelude *moejs.Script
+	if opts.Prelude != "" {
+		if prelude, err = moejs.CompileScript("prelude.js", opts.Prelude); err != nil {
+			return nil, fmt.Errorf("plugin: Options.Prelude: %w", err)
+		}
+	}
 	p := &Plugin{
 		manifest: *m,
 		dir:      dir,
 		data:     filepath.Join(opts.DataDir, m.ID),
 		mod:      mod,
+		prelude:  prelude,
 		exports:  make(map[string]bool),
 		opts:     opts,
 		storage:  make(map[string]json.RawMessage),
@@ -278,8 +310,12 @@ func (p *Plugin) CallWithin(timeout time.Duration, method string, args, out any)
 	}
 }
 
-// Close stops the plugin. It starts again on the next call.
+// Close stops the plugin, and a start in progress. It starts again on the next
+// call.
 func (p *Plugin) Close() {
+	if v := p.loading.Load(); v != nil {
+		v.close()
+	}
 	p.mu.Lock()
 	v := p.vm
 	p.vm = nil
@@ -291,15 +327,19 @@ func (p *Plugin) Close() {
 
 // vm is one running plugin. Only its loop's goroutine touches the runtime.
 type vm struct {
-	rt     *moejs.Runtime
-	loop   *eventloop.Loop
-	api    *webapi.API
-	helper moejs.Value
-	once   sync.Once
+	rt      *moejs.Runtime
+	loop    *eventloop.Loop
+	api     *webapi.API
+	helper  moejs.Value
+	hostErr moejs.Value
+	ctx     context.Context // ends with the runtime, for host functions
+	cancel  context.CancelFunc
+	once    sync.Once
 }
 
 func (v *vm) close() {
 	v.once.Do(func() {
+		v.cancel()
 		v.api.Close()
 		v.loop.Terminate()
 	})
@@ -335,24 +375,58 @@ func (p *Plugin) start() (*vm, error) {
 	if err != nil {
 		return nil, err
 	}
-	v := &vm{rt: rt, loop: loop, api: api}
-	if err := p.installHost(v); err != nil {
-		api.Close()
-		return nil, err
-	}
-	if v.helper, err = rt.RunScript(helperScript); err != nil {
-		api.Close()
-		return nil, err
-	}
-	if err := rt.Load(p.mod); err != nil && !errors.Is(err, moejs.ErrModulePending) {
-		api.Close()
-		return nil, err
-	}
-	if err := loop.Start(); err != nil {
-		api.Close()
+	ctx, cancel := context.WithCancel(context.Background())
+	v := &vm{rt: rt, loop: loop, api: api, ctx: ctx, cancel: cancel}
+	p.loading.Store(v)
+	defer p.loading.Store(nil)
+	if err := p.load(v); err != nil {
+		v.close()
 		return nil, err
 	}
 	return v, nil
+}
+
+// load readies a new runtime and starts its loop. The prelude and the module's
+// top level run on the caller's goroutine, under p.mu, so they are interrupted
+// once they run past LoadTimeout.
+func (p *Plugin) load(v *vm) error {
+	if err := p.installHost(v); err != nil {
+		return err
+	}
+	var err error
+	if v.helper, err = v.rt.RunScript(helperScript); err != nil {
+		return err
+	}
+	if v.hostErr, err = v.rt.RunScript(hostErrorScript); err != nil {
+		return err
+	}
+	late := time.AfterFunc(p.opts.LoadTimeout, func() { v.rt.Interrupt(errLoadTimeout) })
+	err = p.evaluate(v.rt)
+	if !late.Stop() {
+		return fmt.Errorf("the prelude and the module's top level did not finish within %s", p.opts.LoadTimeout)
+	}
+	if errors.Is(err, eventloop.ErrTerminated) {
+		return errors.New("the plugin was closed while it loaded")
+	}
+	if err != nil {
+		return err
+	}
+	return v.loop.Start()
+}
+
+var errLoadTimeout = errors.New("the plugin did not load in time")
+
+// evaluate runs the prelude, then the module's top level.
+func (p *Plugin) evaluate(rt *moejs.Runtime) error {
+	if p.prelude != nil {
+		if _, err := rt.RunScript(p.prelude); err != nil {
+			return fmt.Errorf("prelude: %w", err)
+		}
+	}
+	if err := rt.Load(p.mod); err != nil && !errors.Is(err, moejs.ErrModulePending) {
+		return err
+	}
+	return nil
 }
 
 // webOptions are what fetch may reach: nothing without the network

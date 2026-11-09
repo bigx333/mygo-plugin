@@ -118,6 +118,8 @@ func (p *Plugin) installHost(v *vm) error {
 			}
 			return moejs.Undefined(), os.RemoveAll(filepath.Join(p.data, name))
 		}),
+		"call":      moejs.NativeFunc(p.hostCall(v)),
+		"functions": moejs.NativeFunc(p.hostFunctions(v)),
 		// This host starts no programs. A plugin that asks is told so, rather
 		// than left to think it failed.
 		"spawn": moejs.NativeFunc(func(*moejs.Realm, moejs.Value, []moejs.Value) (moejs.Value, error) {
