@@ -18,6 +18,7 @@ This is [bigx333/mygo-plugin](https://github.com/bigx333/mygo-plugin), a fork of
 | --- | --- |
 | `Options.Functions` and `host.call(name, args)` / `host.functions()` | Upstream gives a host no way to add its own functions. Glitched's plugins await host work: an allowlisted program, a per-plugin SQLite database, app services. A function runs on its own goroutine, gets a `ctx` that ends when the runtime closes, and answers as JSON. |
 | `Options.Prelude` | A host defines helper globals, such as a typed wrapper over `host.call`, once for every plugin, before the module loads. |
+| A call fails as its runtime closes | Upstream leaves a call that was waiting on its answer as `Close` ended the runtime to its whole timeout: a host that reloads a plugin stalls its callers. |
 | `Options.Main` | A host loads a plugin's second module, such as a headless service, as a runtime of its own. It must be a file in the plugin's folder. |
 | `Options.LoadTimeout`, and `Close` ends a start in progress | Upstream runs a module's top level with no time limit while it holds the plugin's lock, so a top level that never ends blocks every later call and `Close` for good. Now the prelude and top level are interrupted after `LoadTimeout`, the start fails with an error that names the limit, and the next call starts again. |
 

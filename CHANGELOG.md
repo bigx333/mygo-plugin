@@ -2,6 +2,12 @@
 
 mygo-plugin follows Semantic Versioning. Before 1.0, a minor version adds features and may change the API; a patch version fixes bugs. Releases are cut at milestones, not per change; see [RELEASING.md](RELEASING.md). The manifest and the host API freeze at 1.0.
 
+## 0.6.1-glitched.3
+
+### Fixed
+
+- A call waiting on its answer as `Close` ends the runtime fails at once, not at its timeout.
+
 ## 0.6.1-glitched.2
 
 ### Added

@@ -315,6 +315,9 @@ func (p *Plugin) CallWithin(timeout time.Duration, method string, args, out any)
 			return nil
 		}
 		return json.Unmarshal(a.json, out)
+	case <-v.ctx.Done():
+		// Closed while it answered: the answer will never come.
+		return fmt.Errorf("the plugin stopped while it answered %s", method)
 	case <-timer.C:
 		p.dropIfStuck(v)
 		return fmt.Errorf("the plugin did not answer %s within %s", method, timeout)
