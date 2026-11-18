@@ -547,7 +547,17 @@ type answer struct {
 }
 
 // ask calls an export on the loop; the answer comes once, through done.
-func (v *vm) ask(method string, params []byte, done func(answer)) {
+// A runtime closed after the export answered still interrupts the call,
+// and that error isn't a second answer.
+func (v *vm) ask(method string, params []byte, answered func(answer)) {
+	once := false
+	done := func(a answer) {
+		if once {
+			return
+		}
+		once = true
+		answered(a)
+	}
 	rt := v.rt
 	fn, ok := rt.Export(method)
 	if !ok {
